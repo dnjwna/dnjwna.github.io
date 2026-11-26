@@ -1,0 +1,21 @@
+{
+  "name": "dtj-receipt-portfolio",
+  "version": "1.0.0",
+  "description": "Receipt-paper portfolio with a Three.js thermal printer",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@fontsource-variable/doto": "^5.3.0",
+    "@fontsource-variable/martian-mono": "^5.3.0",
+    "qrcode-generator": "^2.0.4",
+    "three": "^0.187.0"
+  },
+  "devDependencies": {
+    "vite": "^8.4.0"
+  },
+  "private": true,
+  "type": "module"
+}

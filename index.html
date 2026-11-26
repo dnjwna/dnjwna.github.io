@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Danu Trisna Juwana · Portfolio</title>
+    <meta
+      name="description"
+      content="Danu Trisna Juwana, Informatics Engineering student in Bandung. Machine learning, computer vision and full-stack web projects, printed as a receipt."
+    />
+    <meta name="theme-color" content="#D6DBD6" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="canonical" href="https://dnjwna.github.io/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://dnjwna.github.io/" />
+    <meta property="og:title" content="Danu Trisna Juwana · Portfolio" />
+    <meta property="og:description" content="Machine learning, computer vision and full-stack web projects, printed as a receipt." />
+    <meta property="og:image" content="https://dnjwna.github.io/og.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <!-- Printer mouth: the navbar is fed out of this slot -->
+    <div class="slot" aria-hidden="true"></div>
+
+    <header class="nav" id="nav">
+      <div class="nav__paper">
+        <div class="nav__row">
+          <a class="nav__brand" href="#top" aria-label="Danu Trisna Juwana, back to top">
+            <svg class="barcode nav__barcode" data-barcode="DTJ" aria-hidden="true"></svg>
+            <span class="nav__brandtext">
+              <strong>Danu Trisna Juwana</strong>
+              <small>receipt no. <span data-receipt-no>0000-0000</span></small>
+            </span>
+          </a>
+
+          <nav class="nav__links" aria-label="Sections">
+            <span class="nav__ink" aria-hidden="true"></span>
+            <a href="#about" data-section="about" aria-label="About"><kbd>1</kbd><span class="lbl" data-text="About">About</span></a>
+            <a href="#work" data-section="work" aria-label="Work"><kbd>2</kbd><span class="lbl" data-text="Work">Work</span></a>
+            <a href="#stack" data-section="stack" aria-label="Stack"><kbd>3</kbd><span class="lbl" data-text="Stack">Stack</span></a>
+            <a href="#log" data-section="log" aria-label="Log"><kbd>4</kbd><span class="lbl" data-text="Log">Log</span></a>
+            <a href="#contact" data-section="contact" aria-label="Contact"><kbd>5</kbd><span class="lbl" data-text="Contact">Contact</span></a>
+          </nav>
+
+          <div class="nav__meta">
+            <span class="nav__clock" title="Local time in Bandung">BDG <time data-clock>--:--:--</time></span>
+            <button class="nav__btn" type="button" data-sound-toggle aria-pressed="true">Sound on</button>
+            <button class="nav__btn nav__menu" type="button" id="menuBtn" aria-expanded="false" aria-controls="menu">Menu</button>
+          </div>
+        </div>
+
+        <div class="nav__tape">
+          <p class="tape__text" aria-live="polite"><span id="tape">&gt; ready, scroll to print</span><span class="tape__caret" aria-hidden="true"></span></p>
+          <div class="tape__meter" aria-hidden="true">
+            <span class="tape__bar"><span id="tapeFill"></span></span>
+            <span id="tapePct">0%</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Full menu: printed as its own receipt, torn off to close -->
+    <div class="menu" id="menu" role="dialog" aria-modal="true" aria-label="Site menu" hidden>
+      <div class="menu__backdrop" data-menu-close></div>
+      <div class="menu__paper">
+        <p class="pl menu__store" style="--i: 0">Danu Trisna Juwana<br /><span>Bandung, West Java, Indonesia</span></p>
+        <p class="pl menu__meta" style="--i: 1"><span data-today>--/--/----</span><span>BDG <time data-clock>--:--:--</time></span></p>
+        <hr class="pl rule" style="--i: 2" />
+        <ol class="menu__items">
+          <li class="pl" style="--i: 3"><a href="#about"><span class="menu__n">1</span><span class="menu__lbl">About</span><i class="menu__lead"></i><span class="menu__qty">who</span></a></li>
+          <li class="pl" style="--i: 4"><a href="#work"><span class="menu__n">2</span><span class="menu__lbl">Work</span><i class="menu__lead"></i><span class="menu__qty">8 items</span></a></li>
+          <li class="pl" style="--i: 5"><a href="#stack"><span class="menu__n">3</span><span class="menu__lbl">Stack</span><i class="menu__lead"></i><span class="menu__qty">tools</span></a></li>
+          <li class="pl" style="--i: 6"><a href="#log"><span class="menu__n">4</span><span class="menu__lbl">Log</span><i class="menu__lead"></i><span class="menu__qty">4 entries</span></a></li>
+          <li class="pl" style="--i: 7"><a href="#contact"><span class="menu__n">5</span><span class="menu__lbl">Contact</span><i class="menu__lead"></i><span class="menu__qty">say hi</span></a></li>
+        </ol>
+        <hr class="pl rule" style="--i: 8" />
+        <p class="pl menu__total" style="--i: 9"><span>Total</span><span>5 sections</span></p>
+        <svg class="pl barcode menu__barcode" style="--i: 10" data-barcode="DNJWNA-MENU" aria-hidden="true"></svg>
+        <div class="pl menu__actions" style="--i: 11">
+          <button class="nav__btn" type="button" data-sound-toggle aria-pressed="true">Sound on</button>
+          <button class="menu__tear" type="button" data-menu-close>Tear off to close</button>
+        </div>
+      </div>
+    </div>
+
+    <section class="hero" id="top">
+      <div class="hero__stage">
+      <canvas id="scene" aria-hidden="true"></canvas>
+      <div class="hero__copy">
+        <h1 class="hero__name">Danu<br />Trisna<br />Juwana</h1>
+        <p class="hero__lede">
+          Informatics Engineering student at UIN Sunan Gunung Djati Bandung. I build machine learning and computer
+          vision systems, and the full-stack apps around them.
+        </p>
+        <div class="hero__cta">
+          <a class="btn btn--ink" href="#work">See the work</a>
+          <a class="btn" href="mailto:danujuwana05@gmail.com">Email me</a>
+          <button class="btn btn--dashed" type="button" data-print-fact>Print a fact</button>
+        </div>
+      </div>
+      <div class="jam-alert" id="jamAlert" role="status" hidden>
+        <strong>Paper jam</strong>
+        <span>Scroll a little slower</span>
+      </div>
+      <p class="hero__hint" aria-hidden="true"><span class="hero__hintarrow">↓</span> <span id="heroHint">Scroll to feed the paper, or press the printer's button</span></p>
+      </div>
+    </section>
+
+    <div class="receipt-wrap">
+      <main class="receipt" id="main">
+        <header class="r-head">
+          <p class="r-store">Danu Trisna Juwana</p>
+          <p>Informatics Engineering<br />UIN Sunan Gunung Djati Bandung<br />Bandung, West Java, Indonesia</p>
+          <dl class="r-meta">
+            <div><dt>Date</dt><dd data-today>--/--/----</dd></div>
+            <div><dt>Receipt</dt><dd data-receipt-no>0000-0000</dd></div>
+            <div><dt>Cashier</dt><dd>you</dd></div>
+            <div><dt>Till</dt><dd>01</dd></div>
+          </dl>
+        </header>
+
+        <section class="r-sec" id="about" data-tape="who's printing this">
+          <div class="r-title"><h2>About</h2><span>1 of 5</span></div>
+          <div class="prose">
+            <p>
+              I'm Danu, an Informatics Engineering student in Bandung. Most of my work sits where models meet
+              products: pose-based fall detection, plant-disease screening inside a farmer PWA, AR on Android, and the
+              Laravel and React apps that hold it all together.
+            </p>
+            <p>
+              I care about results that hold up. In my fall-detection research the hybrid model turned out
+              statistically equivalent to its simpler baselines, so that is exactly what the write-up says.
+            </p>
+          </div>
+          <dl class="kv">
+            <div><dt>Based in</dt><dd>Bandung, Indonesia (UTC+7)</dd></div>
+            <div><dt>Studying</dt><dd>Informatics Engineering, UIN SGD Bandung</dd></div>
+            <div><dt>Focus</dt><dd>Machine learning, computer vision, full-stack web</dd></div>
+          </dl>
+        </section>
+
+        <section class="r-sec" id="work" data-tape="6 shipped, 2 still printing">
+          <div class="r-title"><h2>Work</h2><span>8 items</span></div>
+
+          <article class="item">
+            <div class="item__row"><span class="item__code">01</span><h3>Fall detection, LSTM-SVM</h3><i class="lead"></i><span class="item__qty">Jul 2026</span></div>
+            <p class="item__desc">
+              Skeleton-based fall detection from MediaPipe Pose. A hybrid LSTM-SVM compared against LSTM-only and
+              SVM-only baselines, with a real-time demo on video and live webcam. Research internship at USM, now my
+              undergraduate thesis.
+            </p>
+            <p class="item__stack">PyTorch, scikit-learn, MediaPipe</p>
+            <a class="item__link" href="https://github.com/dnjwna/fall-detection-lstm-svm" target="_blank" rel="noopener">github.com/dnjwna/fall-detection-lstm-svm</a>
+            <details class="item__more">
+              <summary>Read the findings</summary>
+              <ul>
+                <li>149-dim scale and translation-invariant pose features; stacked LSTM 64→32; RBF SVM with calibrated probabilities.</li>
+                <li>Videos are split before windowing, so no clip leaks between train and test.</li>
+                <li>Within-dataset 5-fold CV: fall F1 of 0.69 to 0.80, and all three variants are statistically equivalent.</li>
+                <li>Zero-shot URFD to Le2i over 6 seeds: fall recall of about 0.58 to 0.66. That generalization gap is the main finding.</li>
+              </ul>
+            </details>
+          </article>
+
+          <article class="item">
+            <div class="item__row"><span class="item__code">02</span><h3>Pulau, macOS notch app</h3><i class="lead"></i><span class="item__qty">Nov 2026</span></div>
+            <p class="item__desc">
+              A Dynamic Island for the MacBook notch, forked from Boring Notch: a productivity island, now playing with
+              lyrics, and a large lock-screen player. Version 0.1.0 is out as a beta.
+            </p>
+            <p class="item__stack">Swift, Xcode</p>
+            <a class="item__link" href="https://github.com/dnjwna/pulau" target="_blank" rel="noopener">github.com/dnjwna/pulau</a>
+          </article>
+
+          <article class="item">
+            <div class="item__row"><span class="item__code">03</span><h3>FarmLens</h3><i class="lead"></i><span class="item__qty">May 2026</span></div>
+            <p class="item__desc">
+              An AgriTech PWA for Indonesian smallholder farmers: plant-disease checks with Gemini vision, hyperlocal
+              weather from Open-Meteo, and crop insurance that pays out on weather triggers.
+            </p>
+            <p class="item__stack">Next.js, FastAPI, Supabase, Gemini API</p>
+            <a class="item__link" href="https://github.com/dnjwna/farmlens" target="_blank" rel="noopener">github.com/dnjwna/farmlens</a>
+          </article>
+
+          <article class="item">
+            <div class="item__row"><span class="item__code">04</span><h3>FlowStep</h3><i class="lead"></i><span class="item__qty">Jun 2026</span></div>
+            <p class="item__desc">
+              Project management with a drag-and-drop Kanban board, role-based access, email invitations and live
+              notifications. Final project of the Dibimbing.id full-stack bootcamp.
+            </p>
+            <p class="item__stack">Laravel 11, React 19, Redux Toolkit, shadcn/ui</p>
+            <a class="item__link" href="https://github.com/dnjwna/flowstep" target="_blank" rel="noopener">github.com/dnjwna/flowstep</a>
+          </article>
+
+          <article class="item">
+            <div class="item__row"><span class="item__code">05</span><h3>Mini Wallet</h3><i class="lead"></i><span class="item__qty">Jun 2026</span></div>
+            <p class="item__desc">
+              Top-ups and transfers that stay consistent under concurrent requests, using row-locked database
+              transactions. Deployed on Railway and Vercel.
+            </p>
+            <p class="item__stack">Laravel 11, Sanctum, React 18, Vite</p>
+            <a class="item__link" href="https://github.com/dnjwna/mini-wallet-project" target="_blank" rel="noopener">github.com/dnjwna/mini-wallet-project</a>
+          </article>
+
+          <article class="item">
+            <div class="item__row"><span class="item__code">06</span><h3>AR endangered species</h3><i class="lead"></i><span class="item__qty">Jun 2026</span></div>
+            <p class="item__desc">
+              An Android AR app that recognises five Indonesian endangered species from markers and shows each one as a
+              3D model.
+            </p>
+            <p class="item__stack">Unity, Vuforia, Blender</p>
+          </article>
+
+          <article class="item item--pending">
+            <div class="item__row"><span class="item__code">07</span><h3>Satellite image super-resolution</h3><i class="lead"></i><span class="stamp">In progress</span></div>
+            <p class="item__desc">
+              Real-ESRGAN on remote-sensing imagery with realistic degradation, to test whether sharper inputs improve
+              land-cover classification. Deep Learning course project, with a Streamlit demo planned.
+            </p>
+          </article>
+
+          <article class="item item--pending">
+            <div class="item__row"><span class="item__code">08</span><h3>Citation check agent</h3><i class="lead"></i><span class="stamp">In progress</span></div>
+            <p class="item__desc">
+              An agent that checks whether cited claims in thesis drafts are actually supported by their sources, using
+              natural language inference. NLP course project.
+            </p>
+          </article>
+
+          <dl class="totals">
+            <div><dt>Shipped</dt><dd>6</dd></div>
+            <div><dt>Still printing</dt><dd>2</dd></div>
+            <div class="totals__grand"><dt>Total</dt><dd>8 items</dd></div>
+          </dl>
+        </section>
+
+        <section class="r-sec" id="stack" data-tape="tools I reach for">
+          <div class="r-title"><h2>Stack</h2><span>5 groups</span></div>
+          <dl class="kv kv--stack">
+            <div><dt>Machine learning</dt><dd>PyTorch, scikit-learn, MediaPipe, Python</dd></div>
+            <div><dt>Backend</dt><dd>Laravel 11, FastAPI, Supabase, MySQL</dd></div>
+            <div><dt>Frontend</dt><dd>React, Next.js, Redux Toolkit, Tailwind, shadcn/ui</dd></div>
+            <div><dt>Apps and XR</dt><dd>Unity, Vuforia, Blender, Swift</dd></div>
+            <div><dt>Shipping</dt><dd>Git, Postman, Vercel, Railway, VPS</dd></div>
+          </dl>
+        </section>
+
+        <section class="r-sec" id="log" data-tape="4 entries, newest first">
+          <div class="r-title"><h2>Log</h2><span>4 entries</span></div>
+          <ol class="log">
+            <li>
+              <span class="log__when">Jul 2026</span>
+              <div>
+                <h3>Research intern, Universiti Sains Malaysia</h3>
+                <p>School of Computer Sciences. Built and evaluated the fall-detection pipeline under Assoc. Prof. Dr. Ahmad Sufril Azlan Mohamed.</p>
+              </div>
+            </li>
+            <li>
+              <span class="log__when">2026</span>
+              <div>
+                <h3>Delegation lead, KKN Internasional in Malaysia</h3>
+                <p>Led 25 UIN SGD Bandung students across 5 work groups, and co-ran a Scratch and Blockly coding class at Sekolah Komunitas PERMAI.</p>
+              </div>
+            </li>
+            <li>
+              <span class="log__when">May–Jun 2026</span>
+              <div>
+                <h3>Full Stack Web Development Bootcamp, Dibimbing.id</h3>
+                <p>Shipped FlowStep and Mini Wallet, from Laravel APIs to deployed React frontends.</p>
+              </div>
+            </li>
+            <li>
+              <span class="log__when">Ongoing</span>
+              <div>
+                <h3>Informatics Engineering, UIN Sunan Gunung Djati Bandung</h3>
+                <p>Undergraduate thesis on skeleton-based fall detection for elderly safety monitoring.</p>
+              </div>
+            </li>
+          </ol>
+        </section>
+
+        <section class="r-sec" id="contact" data-tape="ways to reach me">
+          <div class="r-title"><h2>Contact</h2><span>3 ways</span></div>
+          <dl class="kv kv--contact">
+            <div><dt>Email</dt><dd><a href="mailto:danujuwana05@gmail.com">danujuwana05@gmail.com</a></dd></div>
+            <div><dt>GitHub</dt><dd><a href="https://github.com/dnjwna" target="_blank" rel="noopener">github.com/dnjwna</a></dd></div>
+            <div><dt>LinkedIn</dt><dd><a href="https://linkedin.com/in/dnjwna" target="_blank" rel="noopener">linkedin.com/in/dnjwna</a></dd></div>
+          </dl>
+          <div class="r-actions">
+            <button class="btn btn--ink" type="button" id="copyEmail" data-email="danujuwana05@gmail.com">Copy email</button>
+            <button class="btn" type="button" id="printReceipt">Print this receipt</button>
+            <span class="r-status" id="actionStatus" role="status"></span>
+          </div>
+
+          <figure class="r-qr">
+            <svg id="contactQR" role="img" aria-label="QR code: Danu Trisna Juwana's contact card with email, GitHub and LinkedIn"></svg>
+            <figcaption><strong>Scan to save my contact</strong><span>vCard with email, GitHub and LinkedIn</span></figcaption>
+          </figure>
+
+          <svg class="barcode r-barcode" data-barcode="DNJWNA-PORTFOLIO" aria-hidden="true"></svg>
+          <p class="r-barcode-digits" aria-hidden="true">*DNJWNA-<span data-receipt-no>0000-0000</span>*</p>
+          <p class="r-thanks">Terima kasih</p>
+          <p class="r-foot">Thanks for reading. Keep this receipt.</p>
+        </section>
+      </main>
+      <p class="colophon">Printed in Bandung with Three.js. © <span data-year>2026</span> Danu Trisna Juwana</p>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,1397 @@
+@import '@fontsource-variable/doto';
+@import '@fontsource-variable/martian-mono/standard.css';
+
+/* ---------------------------------------------------------------------------
+   Tokens
+   counter  = the laminate desk the receipt lies on
+   paper    = thermal paper (cool white, not cream)
+   ink      = faded thermal black, ink-soft = the grey a thermal head leaves
+   red      = second colour of two-colour thermal paper
+--------------------------------------------------------------------------- */
+:root {
+  --counter: #d6dbd6;
+  --counter-deep: #c4cbc5;
+  --paper: #fcfcf9;
+  --ink: #1e1f23;
+  --ink-soft: #686b72;
+  --red: #d8262e;
+  --slot: #24262b;
+
+  --f-dot: 'Doto Variable', 'Martian Mono Variable', ui-monospace, monospace;
+  --f-mono: 'Martian Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  --zz: 9px; /* zigzag tooth size */
+  --feed: steps(9, end); /* thermal printers move in line steps, not eases */
+
+  --noise: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .07 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+
+  /* Paper fibre: turbulence stretched along x reads as thin horizontal fibres */
+  --fibers: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1400' height='700'><filter id='f'><feTurbulence type='fractalNoise' baseFrequency='.01 .2' numOctaves='2' seed='7' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .12  0 0 0 0 .12  0 0 0 0 .14  -.5 0 0 0 .19'/></filter><rect width='100%' height='100%' filter='url(%23f)'/></svg>");
+  /* Coarse grain: sparse darker flecks in the pulp */
+  --pulp: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='p'><feTurbulence type='turbulence' baseFrequency='.55' numOctaves='1' seed='11' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .15  0 0 0 0 .15  0 0 0 0 .17  1.6 0 0 0 -.92'/></filter><rect width='100%' height='100%' filter='url(%23p)'/></svg>");
+
+  /* Thermal fade masks for ink: large soft patches + tiny dot dropouts */
+  --fade-patches: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='280' height='280'><filter id='s'><feTurbulence type='fractalNoise' baseFrequency='.03' numOctaves='3' seed='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -2 0 0 0 2.05'/></filter><rect width='100%' height='100%' filter='url(%23s)'/></svg>");
+  --fade-dots: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='d'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='1' seed='5' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -4 0 0 0 3.4'/></filter><rect width='100%' height='100%' filter='url(%23d)'/></svg>");
+
+  /* hero-size wear: never drops below ~50% ink, so no letter disappears */
+  --fade-soft: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='280' height='280'><filter id='s'><feTurbulence type='fractalNoise' baseFrequency='.03' numOctaves='3' seed='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -1.2 0 0 0 1.7'/></filter><rect width='100%' height='100%' filter='url(%23s)'/></svg>");
+
+  --paper-fx: var(--fibers), var(--pulp), var(--noise);
+}
+
+/* Ink that printed unevenly: patchy fade + missing dots. Applied to the big
+   dot-matrix type and stamps, where a real thermal head shows wear first. */
+.ink-worn,
+.r-store,
+.r-title h2,
+.totals__grand,
+.r-thanks,
+.hero__name,
+.menu__lbl,
+.stamp {
+  -webkit-mask: var(--fade-patches) 0 0 / 280px 280px, var(--fade-dots) 0 0 / 120px 120px;
+  -webkit-mask-composite: source-in;
+  mask: var(--fade-patches) 0 0 / 280px 280px, var(--fade-dots) 0 0 / 120px 120px;
+  mask-composite: intersect;
+}
+/* offset the pattern per element so the wear doesn't repeat visibly */
+.r-title h2 {
+  -webkit-mask-position: 37% 61%, 12px 40px;
+  mask-position: 37% 61%, 12px 40px;
+}
+.r-thanks {
+  -webkit-mask-position: 80% 20%, 50px 8px;
+  mask-position: 80% 20%, 50px 8px;
+}
+/* at hero size, dot dropouts read as noise: keep only the broad, soft fade */
+.hero__name {
+  -webkit-mask: var(--fade-soft) 30% 40% / 560px 560px;
+  mask: var(--fade-soft) 30% 40% / 560px 560px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--noise), radial-gradient(120% 80% at 70% 0%, #e3e7e2 0%, var(--counter) 55%, var(--counter-deep) 100%);
+  background-attachment: fixed;
+  color: var(--ink);
+  font-family: var(--f-mono);
+  font-size: 14px;
+  font-stretch: 87.5%;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+p,
+dl,
+dd,
+ol,
+ul {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px dashed var(--red);
+  outline-offset: 3px;
+}
+
+.skip {
+  position: fixed;
+  left: 12px;
+  top: 12px;
+  z-index: 100;
+  padding: 8px 12px;
+  background: var(--ink);
+  color: var(--paper);
+  transform: translateY(-200%);
+}
+.skip:focus {
+  transform: none;
+}
+
+/* Shared zigzag edges ------------------------------------------------------ */
+.zz-bottom,
+.nav__paper,
+.menu__paper {
+  -webkit-mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / calc(2 * var(--zz)) 100%;
+  mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / calc(2 * var(--zz)) 100%;
+}
+
+/* Barcodes (generated in JS) */
+.barcode {
+  display: block;
+  color: var(--ink);
+}
+
+/* Buttons ------------------------------------------------------------------ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 16px;
+  border: 1.5px solid var(--ink);
+  background: transparent;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.18s steps(3), color 0.18s steps(3);
+}
+.btn:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+.btn--ink {
+  background: var(--ink);
+  color: var(--paper);
+}
+.btn--dashed {
+  border-style: dashed;
+  border-color: var(--ink-soft);
+  font-weight: 500;
+}
+.btn--ink:hover {
+  background: var(--red);
+  border-color: var(--red);
+}
+
+/* ===========================================================================
+   NAVBAR: a strip of receipt fed out of a slot at the top of the viewport
+=========================================================================== */
+.slot {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 9px;
+  z-index: 60;
+  background: linear-gradient(#36393f, var(--slot) 60%, #111215);
+  box-shadow: 0 2px 6px rgba(15, 20, 18, 0.35);
+}
+
+.nav {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  z-index: 50;
+  width: min(1000px, calc(100% - 20px));
+  transform: translateX(-50%);
+  filter: drop-shadow(0 10px 14px rgba(25, 35, 30, 0.16));
+  transition: transform 0.5s var(--feed);
+}
+.nav.is-tucked {
+  /* paper retracts into the slot, leaving just the torn edge visible */
+  transform: translate(-50%, calc(-100% + 22px));
+}
+.nav.is-tucked:focus-within {
+  transform: translateX(-50%);
+}
+
+.nav__paper {
+  position: relative;
+  padding: 18px 18px calc(14px + var(--zz));
+  background: var(--paper-fx), var(--paper);
+  animation: feedDown 0.9s var(--feed) 0.15s both;
+}
+
+.nav__row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 18px;
+}
+
+.nav__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  min-width: 0;
+}
+.nav__barcode {
+  width: 44px;
+  height: 28px;
+  flex: none;
+}
+.nav__brandtext {
+  display: grid;
+  line-height: 1.25;
+}
+.nav__brandtext strong {
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.nav__brandtext small {
+  font-size: 10.5px;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.nav__links {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+}
+.nav__links a {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 11px;
+  font-size: 12.5px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s steps(2);
+}
+.nav__links a:hover:not(.is-active) {
+  /* thermal dither instead of a flat hover tint */
+  background: radial-gradient(circle, rgba(30, 31, 35, 0.26) 0.9px, transparent 1.2px) 0 0 / 4px 4px;
+}
+.nav__links a.is-active {
+  color: var(--paper);
+}
+.nav__links kbd {
+  font-family: inherit;
+  font-size: 9.5px;
+  line-height: 1;
+  padding: 2px 4px;
+  border: 1px solid currentColor;
+  opacity: 0.55;
+}
+.nav__links .lbl {
+  white-space: pre;
+}
+
+/* Inverse-print bar that steps between items, red second-colour underline */
+.nav__ink {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--x, 0px);
+  width: var(--w, 0px);
+  background: var(--ink);
+  opacity: 0;
+  transition: left 0.36s steps(7), width 0.36s steps(7), opacity 0.2s steps(2);
+}
+.nav__ink::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -5px;
+  height: 3px;
+  background: var(--red);
+}
+.nav__links.has-active .nav__ink {
+  opacity: 1;
+}
+
+.nav__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.nav__clock {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.nav__clock time {
+  color: var(--ink);
+  font-weight: 600;
+}
+.nav__btn {
+  padding: 6px 9px;
+  border: 1px solid var(--ink);
+  background: transparent;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.nav__btn:hover,
+.nav__btn[aria-pressed='true'] {
+  background: var(--ink);
+  color: var(--paper);
+}
+.nav__menu {
+  display: none;
+}
+
+.nav__tape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 12px;
+  padding-top: 9px;
+  background: repeating-linear-gradient(90deg, var(--ink-soft) 0 6px, transparent 6px 11px) top / 100% 1px no-repeat;
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+.tape__text {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.tape__caret {
+  display: inline-block;
+  width: 0.6em;
+  height: 1.05em;
+  margin-left: 2px;
+  vertical-align: -0.18em;
+  background: var(--red);
+  animation: blink 1s steps(1) infinite;
+}
+.tape__meter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+.tape__bar {
+  position: relative;
+  width: 112px;
+  height: 9px;
+  border: 1px solid var(--ink);
+}
+.tape__bar > span {
+  position: absolute;
+  inset: 1px auto 1px 1px;
+  width: var(--p, 0%);
+  max-width: calc(100% - 2px);
+  background: repeating-linear-gradient(90deg, var(--ink) 0 4px, transparent 4px 6px);
+}
+#tapePct {
+  min-width: 4ch;
+  text-align: right;
+  color: var(--ink);
+}
+
+@media (max-width: 900px) {
+  .nav__links,
+  .nav__clock,
+  .nav__meta > [data-sound-toggle] {
+    display: none;
+  }
+  .nav__row {
+    grid-template-columns: 1fr auto;
+  }
+  .nav__menu {
+    display: inline-block;
+    padding: 8px 12px;
+  }
+  .tape__bar {
+    width: 64px;
+  }
+}
+
+@media (hover: none) {
+  .nav__links kbd {
+    display: none;
+  }
+}
+
+/* ===========================================================================
+   MENU: prints line by line, tears off to close
+=========================================================================== */
+.menu {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+}
+.menu[hidden] {
+  display: none;
+}
+.menu__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(196, 203, 197, 0.72);
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+  animation: fadeIn 0.25s steps(4) both;
+}
+.menu__paper {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: min(440px, calc(100% - 24px));
+  max-height: 100%;
+  overflow: auto;
+  padding: 30px 26px calc(24px + var(--zz));
+  background: var(--paper-fx), var(--paper);
+  transform: translateX(-50%);
+  transform-origin: 90% 0;
+  filter: drop-shadow(0 18px 24px rgba(25, 35, 30, 0.22));
+  animation: feedDown 0.75s steps(14) both;
+}
+.menu .pl {
+  animation: printLine 0.14s steps(3) both;
+  animation-delay: calc(0.18s + var(--i) * 0.065s);
+}
+.menu__store {
+  text-align: center;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.menu__store span {
+  font-weight: 400;
+  font-size: 11.5px;
+  color: var(--ink-soft);
+}
+.menu__meta,
+.menu__total {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 14px;
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+.rule {
+  height: 2px;
+  margin: 16px 0;
+  border: 0;
+  background: repeating-linear-gradient(90deg, var(--ink) 0 8px, transparent 8px 14px);
+}
+.menu__items {
+  list-style: none;
+  padding: 0;
+}
+.menu__items a {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 7px 4px;
+  text-decoration: none;
+}
+.menu__n {
+  font-size: 11px;
+  color: var(--ink-soft);
+  width: 1.5ch;
+}
+.menu__lbl {
+  font-family: var(--f-dot);
+  font-weight: 900;
+  font-size: 34px;
+  line-height: 1;
+}
+.menu__lead {
+  flex: 1;
+  border-bottom: 2px dotted var(--ink-soft);
+  transform: translateY(-6px);
+}
+.menu__qty {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+}
+.menu__items a:hover .menu__lbl,
+.menu__items a:focus-visible .menu__lbl {
+  color: var(--red);
+}
+.menu__total {
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 13px;
+  margin-top: 0;
+}
+.menu__barcode {
+  width: 100%;
+  height: 46px;
+  margin: 18px 0 16px;
+}
+.menu__actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.menu__tear {
+  padding: 8px 12px;
+  border: 1px dashed var(--ink);
+  background: transparent;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.menu__tear::before {
+  content: '✂ ';
+}
+.menu__tear:hover {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.menu.is-tearing .menu__paper {
+  animation: tearOff 0.6s cubic-bezier(0.5, 0, 0.9, 0.4) forwards;
+}
+.menu.is-tearing .menu__backdrop {
+  animation: fadeOut 0.5s steps(5) forwards;
+}
+
+/* ===========================================================================
+   HERO
+=========================================================================== */
+.hero {
+  position: relative;
+  /* scroll track: the stage stays pinned while the printer feeds the paper */
+  height: 230svh;
+}
+.hero__stage {
+  --glow-x: 72%;
+  --glow-y: 62%;
+  --horizon: 42%;
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  display: grid;
+  align-items: center;
+  overflow: hidden;
+}
+/* light pool around the machine + a desk surface that starts at the 3D horizon,
+   both positioned from the scene so the canvas and the page share one space.
+   Faded at the bottom so the pinned stage never ends on a hard line. */
+.hero__stage::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(520px 380px at var(--glow-x) var(--glow-y), rgba(255, 253, 244, 0.62), rgba(255, 253, 244, 0.22) 45%, rgba(255, 253, 244, 0) 72%),
+    radial-gradient(900px 260px at var(--glow-x) calc(var(--glow-y) + 170px), rgba(255, 252, 240, 0.28), transparent 70%),
+    linear-gradient(180deg, transparent calc(var(--horizon) - 60px), rgba(38, 54, 46, 0.035) var(--horizon), rgba(38, 54, 46, 0.075) 78%, transparent 100%);
+  -webkit-mask: linear-gradient(180deg, #000 72%, transparent 100%);
+  mask: linear-gradient(180deg, #000 72%, transparent 100%);
+}
+#scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  /* long shadows and the desk dissolve into the page instead of ending on a hard edge */
+  -webkit-mask: linear-gradient(180deg, #000 86%, transparent 100%);
+  mask: linear-gradient(180deg, #000 86%, transparent 100%);
+}
+.hero__copy {
+  position: relative;
+  z-index: 1;
+  max-width: 620px;
+  padding: 150px 0 110px clamp(24px, 6vw, 96px);
+  pointer-events: none;
+}
+.hero__copy a,
+.hero__copy button {
+  pointer-events: auto;
+}
+.hero__name {
+  /* the box must wrap the glyphs exactly: the wear mask clips anything outside it */
+  width: max-content;
+  max-width: none;
+  padding-right: 0.08em;
+  font-family: var(--f-dot);
+  font-weight: 900;
+  font-size: clamp(64px, 10.5vw, 168px);
+  line-height: 0.84;
+  letter-spacing: -0.01em;
+  margin-left: -0.04em;
+}
+.hero__lede {
+  max-width: 44ch;
+  margin-top: 30px;
+  font-size: 14.5px;
+  color: #3a3c42;
+}
+.hero__cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 28px;
+}
+.hero__hint {
+  position: absolute;
+  left: clamp(24px, 6vw, 96px);
+  bottom: 26px;
+  z-index: 1;
+  font-size: 11.5px;
+  color: var(--ink-soft);
+}
+.hero__hintarrow {
+  display: inline-block;
+  animation: nudge 1.6s steps(4) infinite;
+}
+
+/* short viewports: the hint would collide with the CTAs */
+@media (max-height: 760px) {
+  .hero__hint {
+    display: none;
+  }
+}
+
+.no-webgl #scene {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .hero {
+    height: auto;
+  }
+  .hero__stage {
+    position: relative;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    padding-top: 92px;
+  }
+  #scene {
+    position: relative;
+    inset: auto;
+    height: 54svh;
+    min-height: 340px;
+  }
+  .hero__copy {
+    padding: 0 22px 64px;
+  }
+  .hero__name {
+    font-size: clamp(56px, 17vw, 110px);
+  }
+  .hero__hint {
+    display: none;
+  }
+}
+
+/* ===========================================================================
+   RECEIPT BODY
+=========================================================================== */
+.receipt-wrap {
+  padding: 40px 12px 80px;
+  filter: drop-shadow(0 22px 28px rgba(25, 35, 30, 0.18));
+}
+.receipt {
+  position: relative;
+  width: min(640px, 100%);
+  margin: 0 auto;
+  padding: calc(40px + var(--zz)) clamp(20px, 5.5vw, 48px) calc(48px + var(--zz));
+  background: var(--paper-fx), var(--paper);
+  -webkit-mask:
+    conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) top / calc(2 * var(--zz)) 51% repeat-x,
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--zz)) 51% repeat-x;
+  mask:
+    conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) top / calc(2 * var(--zz)) 51% repeat-x,
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--zz)) 51% repeat-x;
+  /* ink sinks slightly into thermal paper instead of sitting on a screen */
+  text-shadow: 0 0 0.6px rgba(30, 31, 35, 0.35);
+}
+
+/* Under the text: edge curl shading + a faint yellowing along one side */
+.receipt::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    /* end-of-roll warning stripe, as printed on real thermal rolls */
+    linear-gradient(180deg, transparent 80%, rgba(216, 38, 46, 0.18) 84%, rgba(216, 38, 46, 0.62) 90%, rgba(216, 38, 46, 0.66) 100%) right 16px top / 8px 100% no-repeat,
+    linear-gradient(90deg, rgba(30, 31, 35, 0.06), transparent 4.5%, transparent 95.5%, rgba(30, 31, 35, 0.055)),
+    linear-gradient(90deg, transparent 70%, rgba(214, 205, 170, 0.08)),
+    linear-gradient(180deg, rgba(214, 205, 170, 0.07), transparent 12%, transparent 88%, rgba(214, 205, 170, 0.06));
+}
+
+/* Over the text: folds that crack the ink, sun-faded patches, and two dead
+   print-head elements that leave a thin pale line through every row */
+.receipt::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    /* creases: shadow, bright ridge, shadow */
+    linear-gradient(178.9deg, transparent 36%, rgba(30, 31, 35, 0.055) 46%, rgba(255, 255, 255, 0.9) 49.5%, rgba(30, 31, 35, 0.035) 53%, transparent 64%) 0 21% / 100% 48px no-repeat,
+    linear-gradient(181.2deg, transparent 38%, rgba(30, 31, 35, 0.045) 47%, rgba(255, 255, 255, 0.85) 50%, rgba(30, 31, 35, 0.03) 53%, transparent 62%) 0 52% / 100% 44px no-repeat,
+    linear-gradient(179.4deg, transparent 38%, rgba(30, 31, 35, 0.05) 47%, rgba(255, 255, 255, 0.85) 50%, rgba(30, 31, 35, 0.03) 53%, transparent 62%) 0 81% / 100% 44px no-repeat,
+    /* the panel between two folds catches less light */
+    linear-gradient(180deg, transparent 52.2%, rgba(30, 31, 35, 0.022) 52.6%, rgba(30, 31, 35, 0.008) 66%, transparent 80.8%),
+    /* faded patches (paper colour laid over the ink) */
+    radial-gradient(ellipse 300px 140px at 82% 9%, rgba(252, 252, 249, 0.5), transparent 72%),
+    radial-gradient(ellipse 260px 180px at 14% 34%, rgba(252, 252, 249, 0.38), transparent 70%),
+    radial-gradient(ellipse 340px 120px at 70% 58%, rgba(252, 252, 249, 0.42), transparent 72%),
+    radial-gradient(ellipse 220px 160px at 30% 88%, rgba(252, 252, 249, 0.36), transparent 70%),
+    /* the head prints weaker toward the right edge */
+    linear-gradient(90deg, transparent 62%, rgba(252, 252, 249, 0.16)),
+    /* dead dot columns */
+    linear-gradient(90deg, transparent calc(36.6% - 1px), rgba(252, 252, 249, 0.8) calc(36.6% - 1px) 36.6%, transparent 36.6%),
+    linear-gradient(90deg, transparent calc(71.3% - 1px), rgba(252, 252, 249, 0.55) calc(71.3% - 1px) 71.3%, transparent 71.3%);
+}
+
+.r-head {
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  line-height: 1.55;
+}
+.r-store {
+  margin-bottom: 6px;
+  font-family: var(--f-dot);
+  font-weight: 900;
+  font-size: clamp(30px, 7vw, 44px);
+  line-height: 0.95;
+  color: var(--ink);
+}
+.r-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 24px;
+  margin-top: 22px;
+  text-align: left;
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+}
+.r-meta div {
+  display: flex;
+  justify-content: space-between;
+}
+.r-meta dd {
+  color: var(--ink);
+}
+
+.r-sec {
+  margin-top: 34px;
+  padding-top: 34px;
+  background: repeating-linear-gradient(90deg, var(--ink) 0 8px, transparent 8px 14px) top / 100% 2px no-repeat;
+  scroll-margin-top: 120px;
+}
+.r-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.r-title h2 {
+  font-family: var(--f-dot);
+  font-weight: 900;
+  font-size: clamp(38px, 8vw, 52px);
+  line-height: 0.9;
+}
+.r-title span {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+}
+
+.prose p {
+  max-width: 62ch;
+  font-size: 13.5px;
+  line-height: 1.7;
+}
+.prose p + p {
+  margin-top: 12px;
+}
+
+.kv {
+  display: grid;
+  gap: 8px;
+  margin-top: 22px;
+  font-size: 12.5px;
+}
+.kv div {
+  display: grid;
+  grid-template-columns: 9.5em 1fr;
+  gap: 12px;
+}
+.kv dt {
+  color: var(--ink-soft);
+}
+.kv--stack div {
+  padding-bottom: 8px;
+  border-bottom: 1px dotted rgba(104, 107, 114, 0.55);
+}
+.kv--contact a {
+  text-decoration-color: var(--red);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+.kv--contact a:hover {
+  color: var(--red);
+}
+
+/* Line items */
+.item {
+  padding: 18px 0;
+}
+.item + .item {
+  border-top: 1px dotted rgba(104, 107, 114, 0.55);
+}
+.item__row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.item__row h3 {
+  font-size: 14.5px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.lead {
+  flex: 1;
+  min-width: 18px;
+  border-bottom: 2px dotted var(--ink-soft);
+  transform: translateY(-4px);
+}
+.item__qty {
+  flex: none;
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+}
+.item__desc {
+  max-width: 60ch;
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.65;
+}
+.item__stack {
+  margin-top: 8px;
+  font-size: 11.5px;
+  color: var(--ink-soft);
+}
+.item__link {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration-color: var(--red);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+.item__link:hover {
+  color: var(--red);
+}
+.item__more {
+  margin-top: 10px;
+  font-size: 12.5px;
+}
+.item__more summary {
+  display: inline-block;
+  cursor: pointer;
+  font-weight: 600;
+  list-style: none;
+}
+.item__more summary::-webkit-details-marker {
+  display: none;
+}
+.item__more summary::before {
+  content: '+ ';
+  color: var(--red);
+}
+.item__more[open] summary::before {
+  content: '− ';
+}
+.item__more ul {
+  margin-top: 10px;
+  padding-left: 1.2em;
+  display: grid;
+  gap: 6px;
+  max-width: 60ch;
+  line-height: 1.6;
+}
+.item__more[open] ul {
+  animation: printLine 0.3s steps(5) both;
+}
+
+.item--pending .item__desc {
+  color: #45474d;
+}
+.stamp {
+  flex: none;
+  padding: 3px 8px 2px;
+  border: 2px solid var(--red);
+  color: var(--red);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transform: rotate(-5deg);
+  mix-blend-mode: multiply;
+}
+
+.totals {
+  display: grid;
+  gap: 4px;
+  margin-top: 10px;
+  padding-top: 18px;
+  background: repeating-linear-gradient(90deg, var(--ink) 0 8px, transparent 8px 14px) top / 100% 2px no-repeat;
+  font-size: 12.5px;
+}
+.totals div {
+  display: flex;
+  justify-content: space-between;
+}
+.totals dt {
+  color: var(--ink-soft);
+}
+.totals__grand {
+  margin-top: 8px;
+  align-items: baseline;
+}
+.totals__grand dt,
+.totals__grand dd {
+  font-family: var(--f-dot);
+  font-weight: 900;
+  font-size: 30px;
+  line-height: 1;
+  color: var(--ink);
+}
+
+/* Log */
+.log {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 18px;
+}
+.log li {
+  display: grid;
+  grid-template-columns: 8.5em 1fr;
+  gap: 14px;
+}
+.log__when {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+  padding-top: 2px;
+}
+.log h3 {
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.log p {
+  margin-top: 4px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  max-width: 56ch;
+}
+
+/* Small dot-matrix accents --------------------------------------------------
+   Numbers and category labels read like a till display; anything you read as
+   a sentence stays in the mono face. Sizes stay >= 15px: below that Doto's
+   dots smear into grey. */
+.r-title span,
+.item__code,
+.item__qty,
+.totals dd,
+.r-meta dd,
+.log__when,
+.kv--stack dt,
+.nav__clock time,
+#tapePct,
+.menu__n,
+.menu__qty,
+.r-barcode-digits {
+  font-family: var(--f-dot);
+  font-weight: 900; /* lighter weights leave hollow dots at this size */
+  color: var(--ink);
+  font-stretch: normal;
+  letter-spacing: 0.03em;
+  font-variant-numeric: tabular-nums;
+  text-shadow: none;
+}
+.r-title span {
+  font-size: 20px;
+}
+.item__code {
+  flex: none;
+  width: 2.4ch;
+  font-size: 18px;
+  color: var(--ink-soft);
+}
+.item--pending .item__code {
+  color: var(--red);
+}
+.item__qty {
+  font-size: 18px;
+}
+.totals dd {
+  font-size: 22px;
+  line-height: 1.1;
+}
+.r-meta dd {
+  font-size: 16px;
+}
+.log__when {
+  font-size: 18px;
+  padding-top: 0;
+  line-height: 1.3;
+}
+.kv--stack dt {
+  font-size: 18px;
+  line-height: 1.35;
+  color: var(--ink);
+}
+.nav__clock time {
+  font-size: 16px;
+  font-weight: 900;
+}
+#tapePct {
+  font-size: 15px;
+}
+.menu__n,
+.menu__qty {
+  font-size: 16px;
+}
+.menu__n {
+  width: 2ch;
+}
+.r-barcode-digits {
+  margin-top: 6px;
+  text-align: center;
+  font-size: 17px;
+  letter-spacing: 0.32em;
+  color: var(--ink);
+}
+
+/* Scannable QR: only the code itself sits above .receipt::after, so folds and
+   dead dot columns never cross it; it carries its own quiet zone */
+.r-qr {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin: 32px 0 0;
+}
+.r-qr svg {
+  position: relative;
+  z-index: 3;
+  display: block;
+  margin-left: -14px; /* optical: the quiet zone shouldn't push the code off the text edge */
+  width: 180px;
+  height: 180px;
+  flex: none;
+}
+.r-qr figcaption {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--ink-soft);
+  max-width: 22ch;
+}
+.r-qr strong {
+  font-family: var(--f-dot);
+  font-weight: 900;
+  font-size: 20px;
+  line-height: 1.05;
+  color: var(--ink);
+}
+
+/* Contact + footer */
+.r-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 26px;
+}
+.r-status {
+  font-size: 11.5px;
+  color: var(--red);
+}
+/* "COPIED": slammed down like a rubber stamp, slightly crooked, inked unevenly */
+.r-status.is-stamp {
+  display: inline-block;
+  padding: 3px 9px 2px;
+  border: 2px solid var(--red);
+  font-family: var(--f-dot);
+  font-weight: 900;
+  font-size: 18px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  mix-blend-mode: multiply;
+  -webkit-mask: var(--fade-patches) 40% 60% / 200px 200px;
+  mask: var(--fade-patches) 40% 60% / 200px 200px;
+  animation: stamp 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.25) both;
+}
+@keyframes stamp {
+  0% {
+    opacity: 0;
+    transform: scale(1.9) rotate(-14deg);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(0.94) rotate(-7deg);
+  }
+  100% {
+    opacity: 0.9;
+    transform: scale(1) rotate(-7deg);
+  }
+}
+.r-barcode {
+  width: 100%;
+  height: 70px;
+  margin-top: 40px;
+}
+.r-thanks {
+  margin-top: 22px;
+  text-align: center;
+  font-family: var(--f-dot);
+  font-weight: 900;
+  font-size: clamp(36px, 9vw, 56px);
+  line-height: 1;
+}
+.r-foot {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--ink-soft);
+}
+.colophon {
+  margin-top: 28px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+@media (max-width: 560px) {
+  .kv div,
+  .log li {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+  .r-meta {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Paper jam: the stage jolts, and an error label is printed above the machine */
+.hero__stage.is-jammed {
+  animation: jamJolt 0.42s steps(7) both;
+}
+@keyframes jamJolt {
+  0% { transform: translate(0, 0); }
+  15% { transform: translate(-7px, 3px); }
+  30% { transform: translate(6px, -2px); }
+  45% { transform: translate(-4px, 2px); }
+  60% { transform: translate(3px, -1px); }
+  80% { transform: translate(-1px, 1px); }
+  100% { transform: translate(0, 0); }
+}
+.jam-alert {
+  /* sits on the printer's body, like an error on the machine's display,
+     so it never covers the printed paper */
+  position: absolute;
+  z-index: 2;
+  left: var(--glow-x);
+  top: var(--glow-y);
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 10px 16px 9px;
+  border: 3px solid var(--red);
+  background: rgba(252, 252, 249, 0.94);
+  color: var(--red);
+  text-align: center;
+  transform: translate(-50%, -50%) rotate(-4deg);
+  pointer-events: none;
+  box-shadow: 0 10px 24px rgba(20, 22, 26, 0.28);
+  animation: jamStamp 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.3) both, jamBlink 0.5s steps(1) 0.3s 3;
+}
+.jam-alert[hidden] {
+  display: none;
+}
+.jam-alert strong {
+  font-family: var(--f-dot);
+  font-weight: 900;
+  font-size: clamp(30px, 3.4vw, 46px);
+  line-height: 0.95;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.jam-alert span {
+  font-size: 12px;
+  font-weight: 600;
+}
+@keyframes jamStamp {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(1.8) rotate(-12deg); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(-4deg); }
+}
+@keyframes jamBlink {
+  50% { opacity: 0.6; }
+}
+
+/* Tear-off: two tugs against the serrated bar, then the receipt drops away */
+.receipt-wrap.is-tearing {
+  transform-origin: 30% 0;
+  animation: receiptTear 1.05s cubic-bezier(0.55, 0, 0.85, 0.35) both;
+  pointer-events: none;
+}
+.receipt-wrap.is-refeeding {
+  animation: receiptRefeed 1.1s steps(14, end) both;
+}
+@keyframes receiptTear {
+  0% {
+    transform: none;
+  }
+  10% {
+    transform: translateY(9px) rotate(-0.5deg);
+  }
+  18% {
+    transform: translateY(3px) rotate(0.3deg);
+  }
+  28% {
+    transform: translateY(14px) rotate(-0.9deg);
+  }
+  34% {
+    transform: translateY(16px) rotate(-1.4deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(7vw, 115vh) rotate(9deg);
+    opacity: 0.85;
+  }
+}
+@keyframes receiptRefeed {
+  from {
+    transform: translateY(-70vh);
+    clip-path: inset(70vh 0 0 0);
+  }
+  to {
+    transform: none;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* ===========================================================================
+   Keyframes
+=========================================================================== */
+@keyframes feedDown {
+  from {
+    clip-path: inset(0 0 100% 0);
+    translate: 0 -40%;
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+    translate: 0 0;
+  }
+}
+@keyframes printLine {
+  from {
+    clip-path: inset(0 0 100% 0);
+    opacity: 0;
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+  }
+}
+@keyframes tearOff {
+  0% {
+    transform: translateX(-50%) rotate(0deg);
+  }
+  18% {
+    transform: translateX(-50%) translateY(6px) rotate(-1.5deg);
+  }
+  100% {
+    transform: translateX(-30%) translateY(110vh) rotate(16deg);
+  }
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+@keyframes nudge {
+  50% {
+    transform: translateY(3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Print: the page becomes a real receipt */
+@media print {
+  body {
+    background: #fff;
+  }
+  .slot,
+  .nav,
+  .menu,
+  .hero,
+  .r-actions,
+  .colophon,
+  .skip {
+    display: none !important;
+  }
+  .receipt-wrap {
+    padding: 0;
+    filter: none;
+    transform: none !important;
+    animation: none !important;
+    opacity: 1 !important;
+    clip-path: none !important;
+  }
+  .receipt {
+    -webkit-mask: none;
+    mask: none;
+    width: 100%;
+    padding: 0;
+    background: #fff;
+    text-shadow: none;
+  }
+  .receipt::before,
+  .receipt::after {
+    display: none;
+  }
+  .item__more ul {
+    display: grid;
+  }
+}
