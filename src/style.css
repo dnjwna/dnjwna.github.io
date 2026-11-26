@@ -83,10 +83,11 @@ html {
 
 body {
   margin: 0;
-  background: var(--noise), radial-gradient(120% 80% at 70% 0%, #e3e7e2 0%, var(--counter) 55%, var(--counter-deep) 100%);
-  background-attachment: fixed;
-  /* Chrome on Android leaves the strip uncovered by fixed backgrounds while the
-     address bar slides away mid-gesture; this colour fills it instead of white */
+  /* The room itself is painted by two fixed layers (body::before for daylight,
+     body::after for night) sized to the largest viewport, rather than a fixed
+     body background: Chrome on Android sizes those to the current viewport and
+     leaves the strip the address bar uncovers mid-gesture white. This solid
+     colour is the last resort underneath. */
   background-color: var(--counter-deep);
   transition: background-color 0.6s ease;
   color: var(--ink);
@@ -1495,12 +1496,13 @@ button {
   }
 }
 
-/* Night: the desk lamp is on. The room goes dark, the paper stays paper. */
-body::before {
+/* The room: daylight (::before) with night (::after) fading in over it when the
+   desk lamp is on. Both are sized to the largest viewport (address bar hidden),
+   not the current one, so they still reach the bottom while the bar is mid-slide. */
+body::before,
+body::after {
   content: '';
   position: fixed;
-  /* sized to the largest viewport (address bar hidden), not the current one,
-     so it still reaches the bottom while the bar is mid-slide */
   top: 0;
   left: 0;
   right: 0;
@@ -1508,6 +1510,12 @@ body::before {
   height: 100lvh;
   z-index: -1;
   pointer-events: none;
+}
+body::before {
+  background: var(--noise), radial-gradient(120% 80% at 70% 0%, #e3e7e2 0%, var(--counter) 55%, var(--counter-deep) 100%);
+}
+/* Night: the desk lamp is on. The room goes dark, the paper stays paper. */
+body::after {
   background: var(--noise), radial-gradient(120% 80% at 70% 0%, #2b302d 0%, #1c201e 55%, #131615 100%);
   opacity: 0;
   transition: opacity 0.6s ease;
@@ -1515,7 +1523,7 @@ body::before {
 html.is-night body {
   background-color: #131615;
 }
-html.is-night body::before {
+html.is-night body::after {
   opacity: 1;
 }
 .hero__name,
@@ -1749,6 +1757,8 @@ html.is-night .menu__backdrop {
   body {
     background: #fff;
   }
+  body::before,
+  body::after,
   .slot,
   .nav,
   .menu,
