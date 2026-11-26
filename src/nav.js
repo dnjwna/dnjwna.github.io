@@ -30,6 +30,13 @@ export function initNav({ reduced = false } = {}) {
   /* ---- active section, ink bar, tape line, tuck-on-scroll ---------------- */
   let active = null;
   let lastY = window.scrollY;
+  // mobile pins the 3D printer to the top of the screen; the nav would cover its paper
+  const pin = document.querySelector('.hero__pin');
+  const narrow = matchMedia('(max-width: 900px)');
+  const printerPinned = () => {
+    if (!narrow.matches || !pin || pin.offsetHeight < 40) return false; // no-webgl: nothing to cover
+    return Math.abs(pin.getBoundingClientRect().top) < 1; // stuck at the top, not scrolling away
+  };
   let ticking = false;
   let typeTimer = 0;
 
@@ -90,7 +97,8 @@ export function initNav({ reduced = false } = {}) {
 
     const menuOpen = !document.getElementById('menu').hidden;
     if (!menuOpen) {
-      if (y > lastY + 6 && y > 240) nav.classList.add('is-tucked');
+      if (printerPinned()) nav.classList.add('is-tucked');
+      else if (y > lastY + 6 && y > 240) nav.classList.add('is-tucked');
       else if (y < lastY - 6 || y < 240) nav.classList.remove('is-tucked');
     }
     lastY = y;
@@ -108,7 +116,8 @@ export function initNav({ reduced = false } = {}) {
   );
   // other parts of the page can print a line on the tape (e.g. the tear-off)
   window.addEventListener('receipt:tape', (e) => {
-    nav.classList.remove('is-tucked'); // a printed message should be seen, even mid-scroll
+    // a printed message should be seen, even mid-scroll, unless the nav would cover the printer
+    if (!printerPinned()) nav.classList.remove('is-tucked');
     typeTape(String(e.detail ?? ''));
   });
   window.addEventListener('resize', placeInk);

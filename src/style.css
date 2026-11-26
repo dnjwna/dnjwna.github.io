@@ -418,6 +418,25 @@ button {
     width: 64px;
   }
 }
+/* phones: the tape is the only "where am I" cue, so give it the meter's room and a
+   second line; the height is reserved so the nav doesn't jump as messages type */
+@media (max-width: 560px) {
+  .nav__tape {
+    align-items: flex-start;
+  }
+  .tape__bar {
+    display: none;
+  }
+  .tape__text {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    white-space: normal;
+    line-height: 1.45;
+    min-height: 2.9em;
+  }
+}
 
 @media (hover: none) {
   .nav__links kbd {
