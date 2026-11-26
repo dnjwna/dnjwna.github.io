@@ -1,11 +1,25 @@
-// Synthesised thermal-printer chatter: short band-passed noise bursts plus a
-// low stepper-motor tone. Off by default; only starts after a user gesture.
+// Printer and register sounds. Two recorded samples (public/sounds/) carry the
+// print feed and the ka-ching; everything else, and any sample that hasn't
+// loaded yet or failed to, is synthesised. Audio only starts after a user gesture.
 
 let ctx = null;
 let noise = null;
 let lastAt = 0;
 const listeners = new Set();
 const KEY = 'dtj-sound';
+
+// Loudness of the samples relative to the synth they replace. Tune by ear.
+const PRINT_GAIN = 0.5; // at buzz()'s default level of 0.16
+const KACHING_GAIN = 0.8;
+const KACHING_SKIP = 0.19; // s of silence at the head of kaching.mp3
+
+const SAMPLE_URLS = {
+  print: `${import.meta.env.BASE_URL}sounds/receipt.mp3`,
+  kaching: `${import.meta.env.BASE_URL}sounds/kaching.mp3`,
+};
+const samples = { print: null, kaching: null }; // decoded AudioBuffers
+let fetched = null; // Promise<{print: ArrayBuffer|null, kaching: ArrayBuffer|null}>
+let decoding = false;
 
 // On by default; a visitor who switches it off stays off on their next visit.
 let enabled = true;
@@ -14,6 +28,65 @@ try {
 } catch {
   /* storage blocked: keep the default */
 }
+
+/** Download the samples once. No AudioContext needed, so this can run before a gesture. */
+function fetchSamples() {
+  if (fetched) return fetched;
+  const get = (url) =>
+    fetch(url)
+      .then((r) => (r.ok ? r.arrayBuffer() : null))
+      .catch(() => null);
+  fetched = Promise.all([get(SAMPLE_URLS.print), get(SAMPLE_URLS.kaching)]).then(([print, kaching]) => ({
+    print,
+    kaching,
+  }));
+  return fetched;
+}
+
+/**
+ * The receipt recording fades in and stops dead, so it can't loop as is.
+ * Cut out the steady middle and crossfade its tail into its head
+ * (equal-power) so the loop point has no click or level dip.
+ */
+function makeLoop(buf, from = 0.15, to = buf.duration - 0.06, xfade = 0.12) {
+  const sr = buf.sampleRate;
+  const a = Math.floor(from * sr);
+  const b = Math.min(buf.length, Math.floor(to * sr));
+  const x = Math.floor(xfade * sr);
+  const n = b - a - x;
+  if (n <= x) return buf; // too short to loop cleanly; play it raw
+  const out = ctx.createBuffer(buf.numberOfChannels, n, sr);
+  for (let c = 0; c < buf.numberOfChannels; c++) {
+    const src = buf.getChannelData(c);
+    const dst = out.getChannelData(c);
+    for (let i = 0; i < n; i++) dst[i] = src[a + i];
+    for (let i = 0; i < x; i++) {
+      const t = i / x;
+      dst[i] = src[a + i] * Math.sin((t * Math.PI) / 2) + src[a + n + i] * Math.cos((t * Math.PI) / 2);
+    }
+  }
+  return out;
+}
+
+function decodeSamples() {
+  if (decoding || !ctx) return;
+  decoding = true;
+  const decode = (ab) =>
+    ab
+      ? new Promise((resolve) => {
+          // callback form too: older Safari has no promise-returning decodeAudioData
+          const p = ctx.decodeAudioData(ab, resolve, () => resolve(null));
+          if (p && p.catch) p.catch(() => resolve(null));
+        })
+      : Promise.resolve(null);
+  fetchSamples().then(async ({ print, kaching }) => {
+    const [p, k] = await Promise.all([decode(print), decode(kaching)]);
+    if (p) samples.print = makeLoop(p);
+    if (k) samples.kaching = k;
+  });
+}
+
+if (enabled) fetchSamples();
 
 function ensureContext() {
   const AC = window.AudioContext || window.webkitAudioContext;
@@ -24,9 +97,82 @@ function ensureContext() {
     noise = ctx.createBuffer(1, len, ctx.sampleRate);
     const d = noise.getChannelData(0);
     for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    decodeSamples();
   }
   if (ctx.state === 'suspended') ctx.resume().catch(() => {});
   return true;
+}
+
+/*
+ * The print motor. Every buzz() keeps it running a little longer, so a burst
+ * of buzz() calls (one per printed line, 50-70 ms apart) becomes one
+ * continuous run of the recording instead of a row of separate blips.
+ */
+let motor = null; // { src, gain, level, releasing, kill }
+let motorUntil = 0; // ctx time the motor should spin down
+let motorTimer = 0;
+const MOTOR_HANG = 0.05; // s kept running past each call, bridges the gaps between lines
+const MOTOR_RELEASE = 0.16; // s of fade-out before the source is actually stopped
+
+function rampTo(gain, value, now, time) {
+  gain.gain.cancelScheduledValues(now);
+  gain.gain.setValueAtTime(gain.gain.value, now);
+  gain.gain.linearRampToValueAtTime(value, now + time);
+}
+
+function stopMotor() {
+  motorTimer = 0;
+  if (!motor || motor.releasing) return;
+  const late = motorUntil - ctx.currentTime;
+  if (late > 0.005) {
+    motorTimer = setTimeout(stopMotor, late * 1000);
+    return;
+  }
+  // Fade out, but keep the source alive for a moment: if another line comes in
+  // during the fade, runMotor() picks the same playback back up, no restart.
+  const m = motor;
+  const now = ctx.currentTime;
+  m.releasing = true;
+  m.gain.gain.cancelScheduledValues(now);
+  m.gain.gain.setValueAtTime(m.gain.gain.value, now);
+  m.gain.gain.setTargetAtTime(0, now, 0.018);
+  m.kill = setTimeout(() => {
+    if (motor !== m || !m.releasing) return;
+    motor = null;
+    try {
+      m.src.stop();
+    } catch {
+      /* already stopped */
+    }
+  }, MOTOR_RELEASE * 1000);
+}
+
+function runMotor(duration, level) {
+  const now = ctx.currentTime;
+  const target = PRINT_GAIN * (level / 0.16);
+  if (motor && motor.releasing) {
+    clearTimeout(motor.kill);
+    motor.releasing = false;
+    motor.level = target;
+    rampTo(motor.gain, target, now, 0.008);
+  }
+  if (!motor) {
+    const src = ctx.createBufferSource();
+    src.buffer = samples.print;
+    src.loop = true;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.linearRampToValueAtTime(target, now + 0.008);
+    src.connect(gain).connect(ctx.destination);
+    // start somewhere random so short runs don't all sound the same
+    src.start(now, Math.random() * samples.print.duration);
+    motor = { src, gain, level: target, releasing: false, kill: 0 };
+  } else if (target > motor.level) {
+    rampTo(motor.gain, target, now, 0.01);
+    motor.level = target;
+  }
+  motorUntil = Math.max(motorUntil, now + Math.max(duration, 0.045) + MOTOR_HANG);
+  if (!motorTimer) motorTimer = setTimeout(stopMotor, (motorUntil - now) * 1000);
 }
 
 /* Browsers only allow audio after a real user gesture (click, tap, key).
@@ -45,6 +191,7 @@ export const sound = {
 
   toggle() {
     enabled = !enabled;
+    if (enabled) fetchSamples();
     if (enabled && !ensureContext()) enabled = false;
     try {
       localStorage.setItem(KEY, enabled ? 'on' : 'off');
@@ -179,6 +326,19 @@ export const sound = {
   kaching() {
     if (!enabled || !ctx || ctx.state !== 'running') return;
     const now = ctx.currentTime;
+    if (samples.kaching) {
+      try {
+        const src = ctx.createBufferSource();
+        src.buffer = samples.kaching;
+        const g = ctx.createGain();
+        g.gain.value = KACHING_GAIN;
+        src.connect(g).connect(ctx.destination);
+        src.start(now, KACHING_SKIP);
+        return;
+      } catch {
+        /* fall through to the synth */
+      }
+    }
     try {
       // drawer: short lowpassed rattle + a thump
       const src = ctx.createBufferSource();
@@ -251,9 +411,21 @@ export const sound = {
     }
   },
 
-  /** One print-head line. Rate-limited so scroll bursts don't stack. */
+  /**
+   * One print-head line. With the receipt sample loaded this keeps the print
+   * motor running; otherwise it synthesises a blip, rate-limited so scroll
+   * bursts don't stack.
+   */
   buzz(duration = 0.045, level = 0.16) {
     if (!enabled || !ctx || ctx.state !== 'running') return;
+    if (samples.print) {
+      try {
+        runMotor(duration, level);
+        return;
+      } catch {
+        /* fall through to the synth */
+      }
+    }
     const now = ctx.currentTime;
     if (now - lastAt < 0.032) return;
     lastAt = now;
