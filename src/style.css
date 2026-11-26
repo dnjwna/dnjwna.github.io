@@ -570,6 +570,10 @@ button {
   --glow-x: 72%;
   --glow-y: 62%;
   --horizon: 42%;
+  --stage-light:
+    radial-gradient(520px 380px at var(--glow-x) var(--glow-y), rgba(255, 253, 244, 0.62), rgba(255, 253, 244, 0.22) 45%, rgba(255, 253, 244, 0) 72%),
+    radial-gradient(900px 260px at var(--glow-x) calc(var(--glow-y) + 170px), rgba(255, 252, 240, 0.28), transparent 70%),
+    linear-gradient(180deg, transparent calc(var(--horizon) - 60px), rgba(38, 54, 46, 0.035) var(--horizon), rgba(38, 54, 46, 0.075) 78%, transparent 100%);
   position: sticky;
   top: 0;
   height: 100svh;
@@ -585,12 +589,13 @@ button {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background:
-    radial-gradient(520px 380px at var(--glow-x) var(--glow-y), rgba(255, 253, 244, 0.62), rgba(255, 253, 244, 0.22) 45%, rgba(255, 253, 244, 0) 72%),
-    radial-gradient(900px 260px at var(--glow-x) calc(var(--glow-y) + 170px), rgba(255, 252, 240, 0.28), transparent 70%),
-    linear-gradient(180deg, transparent calc(var(--horizon) - 60px), rgba(38, 54, 46, 0.035) var(--horizon), rgba(38, 54, 46, 0.075) 78%, transparent 100%);
+  background: var(--stage-light);
   -webkit-mask: linear-gradient(180deg, #000 72%, transparent 100%);
   mask: linear-gradient(180deg, #000 72%, transparent 100%);
+}
+/* wraps the canvas and the jam label; only becomes a box on mobile, where it's pinned */
+.hero__pin {
+  display: contents;
 }
 #scene {
   position: absolute;
@@ -671,6 +676,33 @@ button {
     display: flex;
     flex-direction: column;
     padding-top: 92px;
+    /* clip, not hidden: hidden would make the stage the sticky pin's scroller */
+    overflow: visible;
+    overflow: clip;
+  }
+  .hero__stage::before {
+    display: none;
+  }
+  .hero__pin {
+    display: block;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    flex-shrink: 0;
+  }
+  .hero__pin::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: var(--stage-light);
+    -webkit-mask: linear-gradient(180deg, #000 72%, transparent 100%);
+    mask: linear-gradient(180deg, #000 72%, transparent 100%);
+  }
+  /* --cut (set from scene.js) is where the pinned printer's bottom edge crosses the copy */
+  .hero__copy {
+    -webkit-mask: linear-gradient(180deg, transparent calc(var(--cut, 0px) - 48px), #000 var(--cut, 0px));
+    mask: linear-gradient(180deg, transparent calc(var(--cut, 0px) - 48px), #000 var(--cut, 0px));
   }
   #scene {
     position: relative;
@@ -680,6 +712,9 @@ button {
   }
   .hero__copy {
     padding: 0 22px 64px;
+    /* scroll track: the printer stays pinned and keeps feeding until the paper tears.
+       A margin, not the stage's padding: a sticky box stops at its parent's content edge. */
+    margin-bottom: 60svh;
   }
   .hero__name {
     font-size: clamp(56px, 17vw, 110px);
@@ -1483,8 +1518,8 @@ html.is-night .hero__cta .btn:hover {
   color: #fcfcf9;
 }
 /* warm pool from the lamp instead of the daylight glow; the desk falls off into the dark */
-html.is-night .hero__stage::before {
-  background:
+html.is-night .hero__stage {
+  --stage-light:
     radial-gradient(560px 420px at var(--glow-x) var(--glow-y), rgba(255, 196, 120, 0.2), rgba(255, 196, 120, 0.06) 50%, transparent 75%),
     linear-gradient(180deg, transparent calc(var(--horizon) - 60px), rgba(0, 0, 0, 0.14) var(--horizon), rgba(0, 0, 0, 0.24) 78%, transparent 100%);
 }

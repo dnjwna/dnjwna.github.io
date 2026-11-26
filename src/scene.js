@@ -270,16 +270,34 @@ export async function initScene(canvas, { reduced = false } = {}) {
       { passive: true },
     );
   }
-  const stage = canvas.parentElement;
+  const stage = canvas.closest('.hero__stage') ?? canvas.parentElement;
+  const pin = canvas.closest('.hero__pin');
+  const copy = stage.querySelector('.hero__copy');
   const hint = document.getElementById('heroHint');
   let hintState = '';
+  const isSticky = (el) => !!el && getComputedStyle(el).position === 'sticky';
   const heroProgress = () => {
     const r = hero.getBoundingClientRect();
-    const pinned = getComputedStyle(stage).position === 'sticky';
-    // pinned (desktop): progress over the scroll track; flowing (mobile): while the canvas scrolls away
-    const span = pinned ? r.height - window.innerHeight : r.height * 0.8;
-    return clamp(-r.top / Math.max(1, span), 0, 1);
+    // desktop: the whole stage is pinned over a tall scroll track
+    if (isSticky(stage)) return clamp(-r.top / Math.max(1, r.height - window.innerHeight), 0, 1);
+    // mobile: only the printer is pinned; it lets go once the track's bottom reaches it
+    if (isSticky(pin)) return clamp(-r.top / Math.max(1, r.height - pin.offsetHeight), 0, 1);
+    return clamp(-r.top / Math.max(1, r.height * 0.8), 0, 1);
   };
+
+  /* Mobile: the copy scrolls up under the pinned printer. Fade it out where it
+     passes beneath, so text never shows through the transparent canvas. */
+  let cutPx = -1;
+  const placeCut = () => {
+    if (!copy) return;
+    const cut = isSticky(pin) ? Math.max(0, Math.round(pin.getBoundingClientRect().bottom - copy.getBoundingClientRect().top)) : 0;
+    if (cut === cutPx) return;
+    cutPx = cut;
+    copy.style.setProperty('--cut', `${cut}px`);
+  };
+  window.addEventListener('scroll', placeCut, { passive: true });
+  window.addEventListener('resize', placeCut, { passive: true });
+  placeCut();
   const setHint = (p, jammed = false) => {
     const next = jammed ? 'jam' : torn ? 'done' : p > 0.02 ? 'feeding' : 'idle';
     if (!hint || next === hintState) return;

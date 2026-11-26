@@ -91,7 +91,13 @@
 
     <section class="hero" id="top">
       <div class="hero__stage">
-      <canvas id="scene" aria-hidden="true"></canvas>
+      <div class="hero__pin">
+        <canvas id="scene" aria-hidden="true"></canvas>
+        <div class="jam-alert" id="jamAlert" role="status" hidden>
+          <strong>Paper jam</strong>
+          <span>Scroll a little slower</span>
+        </div>
+      </div>
       <div class="hero__copy">
         <h1 class="hero__name">Danu<br />Trisna<br />Juwana</h1>
         <p class="hero__lede">
@@ -103,10 +109,6 @@
           <a class="btn" href="mailto:danujuwana05@gmail.com">Email me</a>
           <button class="btn btn--dashed" type="button" data-print-fact>Print a fact</button>
         </div>
-      </div>
-      <div class="jam-alert" id="jamAlert" role="status" hidden>
-        <strong>Paper jam</strong>
-        <span>Scroll a little slower</span>
       </div>
       <p class="hero__hint" aria-hidden="true"><span class="hero__hintarrow">↓</span> <span id="heroHint">Scroll to feed the paper, or press the printer's button</span></p>
       </div>
