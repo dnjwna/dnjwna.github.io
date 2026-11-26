@@ -24,7 +24,7 @@ const CREASE_W = 0.028; // half-width of a fold ridge
 // The hand-off to the page: printing ends at TEAR_AT of the hero scroll, the printer tears
 // the paper off and it drops out of the frame, toward the receipt the page shows below.
 const TEAR_AT = 0.88;
-const REATTACH_AT = 0.8; // scrolling back above this puts the paper back and reprints it
+const REATTACH_AT = 0.8; // scrolling back this far below the tear point reprints the paper
 const DROP_MS = 850;
 const STUB = 0.05; // fresh paper left in the slot after a tear
 
@@ -288,6 +288,18 @@ export async function initScene(canvas, { reduced = false } = {}) {
   /* Mobile: the copy scrolls up under the pinned printer. Fade it out where it
      passes beneath, so text never shows through the transparent canvas. */
   let cutPx = -1;
+  /* Where the paper tears. Desktop pins the whole stage, so the page receipt stays off
+     screen until the end: TEAR_AT. Mobile pins only the printer and the receipt rises
+     beneath it early, so tear just before its edge enters, letting the drop and the
+     page's landing bounce play as one move. */
+  const pageReceipt = document.querySelector('.receipt-wrap');
+  const tearAt = () => {
+    if (!pageReceipt || !isSticky(pin)) return TEAR_AT;
+    const r = hero.getBoundingClientRect();
+    const edge = pageReceipt.getBoundingClientRect().top - r.top; // receipt top, from the hero's top
+    return clamp((edge - window.innerHeight - 16) / Math.max(1, r.height - pin.offsetHeight), 0.3, TEAR_AT);
+  };
+
   const placeCut = () => {
     if (!copy) return;
     const cut = isSticky(pin) ? Math.max(0, Math.round(pin.getBoundingClientRect().bottom - copy.getBoundingClientRect().top)) : 0;
@@ -502,12 +514,13 @@ export async function initScene(canvas, { reduced = false } = {}) {
     let target = fed;
     const p = heroProgress();
     if (introDone) {
-      if (!torn && p >= TEAR_AT) tearOff(now);
-      else if (torn && !tornAt && p < REATTACH_AT) {
+      const tearP = tearAt();
+      if (!torn && p >= tearP) tearOff(now);
+      else if (torn && !tornAt && p < tearP - (TEAR_AT - REATTACH_AT)) {
         torn = false; // scrolled back: print it again
         for (let i = 0; i < 8; i++) setTimeout(() => sound.buzz(), i * 60);
       }
-      const step = Math.floor((Math.min(1, p / TEAR_AT) * (maxL - introL)) / LINE);
+      const step = Math.floor((Math.min(1, p / tearP) * (maxL - introL)) / LINE);
       if (step !== lastStep) {
         if (lastStep !== -1 && now >= jamUntil && !torn) {
           sound.buzz();
