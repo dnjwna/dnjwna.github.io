@@ -20,6 +20,12 @@ const LEAN = 0.1; // backward lean of the rising part (rad)
 const CUP = 0.045; // edge-to-centre curl across the width
 const CREASE_H = 0.014; // height of a fold ridge
 const CREASE_W = 0.028; // half-width of a fold ridge
+// The hand-off to the page: printing ends at TEAR_AT of the hero scroll, the printer tears
+// the paper off and it drops out of the frame, toward the receipt the page shows below.
+const TEAR_AT = 0.88;
+const REATTACH_AT = 0.8; // scrolling back above this puts the paper back and reprints it
+const DROP_MS = 850;
+const STUB = 0.05; // fresh paper left in the slot after a tear
 
 function hasWebGL() {
   try {
@@ -260,14 +266,14 @@ export async function initScene(canvas, { reduced = false } = {}) {
     return clamp(-r.top / Math.max(1, span), 0, 1);
   };
   const setHint = (p, jammed = false) => {
-    const next = jammed ? 'jam' : p >= 0.98 ? 'done' : p > 0.02 ? 'feeding' : 'idle';
+    const next = jammed ? 'jam' : torn ? 'done' : p > 0.02 ? 'feeding' : 'idle';
     if (!hint || next === hintState) return;
     hintState = next;
     hint.textContent =
       next === 'jam'
         ? 'Paper jam. Scroll a little slower'
         : next === 'done'
-        ? 'Printed. The full receipt is below'
+        ? 'Torn off. Your copy is below'
         : next === 'feeding'
           ? 'Feeding paper…'
           : "Scroll to feed the paper, or press the printer's button";
@@ -359,6 +365,32 @@ export async function initScene(canvas, { reduced = false } = {}) {
   let lastStep = -1;
   let feed = 0; // sustained print flutter, 0..1
   let kick = 0; // per-line jolt, decays fast
+  let torn = false;
+  let tornAt = 0; // when the torn piece started to fall (0 once it has left the frame)
+
+  function tearOff(now) {
+    torn = true;
+    tornAt = reduced ? 0 : now;
+    if (reduced) L = STUB;
+    sound.tear();
+    tape('> torn off. your copy is below');
+    window.dispatchEvent(new Event('receipt:torn'));
+  }
+  // the torn piece falls forward, off the desk and out of the bottom of the frame
+  function dropPaper(now) {
+    const k = Math.min(1, (now - tornAt) / DROP_MS);
+    for (const m of [front, back]) {
+      m.position.set(0, -7 * k * k + 0.25 * Math.sin(k * Math.PI), 1.8 * (1 - (1 - k) ** 2));
+      m.rotation.x = 0.7 * k * k;
+    }
+    if (k < 1) return;
+    tornAt = 0;
+    L = STUB; // the next sheet waits in the slot
+    for (const m of [front, back]) {
+      m.position.set(0, 0, 0);
+      m.rotation.x = 0;
+    }
+  }
 
   /* ---- paper jam: only from genuinely fast wheel / trackpad / touch scrolling ----
      Link clicks, number-key jumps and PageDown scroll programmatically or by key,
@@ -429,15 +461,20 @@ export async function initScene(canvas, { reduced = false } = {}) {
     let target = fed;
     const p = heroProgress();
     if (introDone) {
-      const step = Math.floor((p * (maxL - introL)) / LINE);
+      if (!torn && p >= TEAR_AT) tearOff(now);
+      else if (torn && !tornAt && p < REATTACH_AT) {
+        torn = false; // scrolled back: print it again
+        for (let i = 0; i < 8; i++) setTimeout(() => sound.buzz(), i * 60);
+      }
+      const step = Math.floor((Math.min(1, p / TEAR_AT) * (maxL - introL)) / LINE);
       if (step !== lastStep) {
-        if (lastStep !== -1 && now >= jamUntil) {
+        if (lastStep !== -1 && now >= jamUntil && !torn) {
           sound.buzz();
           kick = 1;
         }
         lastStep = step;
       }
-      target = introL + step * LINE;
+      target = torn ? STUB : introL + step * LINE;
     }
     // jam detection (real elapsed time, so a slow frame can't fake a fast scroll)
     const sy = window.scrollY;
@@ -470,10 +507,11 @@ export async function initScene(canvas, { reduced = false } = {}) {
     const jammed = now < jamUntil;
     if (!reduced) jam += ((jammed ? 1 : 0) - jam) * (1 - Math.exp(-dt * (jammed ? 14 : 3.5)));
 
-    // while jammed the paper doesn't move; afterwards it catches up
-    if (!jammed) L += reduced ? target - L : (target - L) * (1 - Math.exp(-dt * 14));
+    // while jammed the paper doesn't move; afterwards it catches up. A falling piece keeps its length.
+    if (tornAt) dropPaper(now);
+    else if (!jammed) L += reduced ? target - L : (target - L) * (1 - Math.exp(-dt * 14));
 
-    const printing = !jammed && (Math.abs(target - L) > 0.004 || !introDone || now < boostUntil);
+    const printing = !jammed && !tornAt && (Math.abs(target - L) > 0.004 || !introDone || now < boostUntil);
     // error blink while jammed, flicker while printing, dim at rest
     printer.led.material.emissiveIntensity = jammed
       ? Math.sin(now / 52) > 0

@@ -71,7 +71,7 @@ export async function createReceiptCanvas({ width = 640, height = 2048 } = {}) {
 
   // --- header (curls away over the top first) ---
   center('* * *   R E C E I P T   * * *', mono(18, 600), 50, SOFT);
-  center('DANU TRISNA JUWANA', mono(27, 700), 40);
+  center('DANU TRISNA JUWANA', mono(27, 700), 40, RED);
   center('Bandung, West Java, Indonesia', mono(18), 32, SOFT);
   center('github.com/dnjwna', mono(18), 50, SOFT);
   row(`Date ${date}`, `Time ${time}`, mono(17), 32);
@@ -93,7 +93,6 @@ export async function createReceiptCanvas({ width = 640, height = 2048 } = {}) {
     ['FarmLens, AgriTech PWA', 'Next.js / FastAPI'],
     ['FlowStep, project mgmt', 'Laravel / React'],
     ['Mini Wallet', 'Laravel / React'],
-    ['AR endangered species', 'Unity / Vuforia'],
   ];
   for (const [name, stack] of items) {
     row(`1    ${name}`, '2026', mono(18, 500), 30);
@@ -103,10 +102,10 @@ export async function createReceiptCanvas({ width = 640, height = 2048 } = {}) {
   row('2    Still printing', '...', mono(18, 600), 50, RED);
   dashed();
 
-  row('SUBTOTAL', '6 shipped', mono(17), 34);
+  row('SUBTOTAL', '5 shipped', mono(17), 34);
   row('IN PROGRESS', '2', mono(17), 64);
   g.font = dot(64);
-  row('TOTAL', '8 ITEMS', dot(64), 74);
+  row('TOTAL', '7 ITEMS', dot(64), 74, RED);
   dashed(56);
 
   // --- barcode ---

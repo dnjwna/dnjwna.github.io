@@ -3,6 +3,7 @@ import { renderBarcodes } from './barcode.js';
 import { initNav } from './nav.js';
 import { initTear } from './tear.js';
 import { renderQR } from './qr.js';
+import { initPrints } from './dither.js';
 import { sound } from './sound.js';
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -18,6 +19,7 @@ document.querySelectorAll('[data-year]').forEach((el) => (el.textContent = Strin
 renderBarcodes();
 const qrEl = document.getElementById('contactQR');
 if (qrEl) renderQR(qrEl);
+initPrints({ reduced });
 
 // keyboard / touch friendly twin of the 3D printer's button
 document.querySelectorAll('[data-print-fact]').forEach((b) =>
@@ -53,6 +55,19 @@ document.getElementById('copyEmail')?.addEventListener('click', async (e) => {
   }
 });
 initTear({ reduced });
+
+/* ---- the paper torn off the 3D printer lands as the page's receipt ---- */
+const wrap = document.querySelector('.receipt-wrap');
+const land = new IntersectionObserver(([e]) => {
+  if (!e.isIntersecting) return;
+  land.unobserve(wrap);
+  wrap.classList.add('is-landing');
+});
+wrap.addEventListener('animationend', (e) => e.animationName === 'receiptLand' && wrap.classList.remove('is-landing'));
+// only when the receipt is still below the screen: one already being read must not jump
+window.addEventListener('receipt:torn', () => {
+  if (!reduced && wrap.getBoundingClientRect().top > innerHeight) land.observe(wrap);
+});
 
 /* ---- 3D printer (loaded separately so the page is usable before three.js arrives) ---- */
 const canvas = document.getElementById('scene');

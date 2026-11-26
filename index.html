@@ -72,7 +72,7 @@
         <hr class="pl rule" style="--i: 2" />
         <ol class="menu__items">
           <li class="pl" style="--i: 3"><a href="#about"><span class="menu__n">1</span><span class="menu__lbl">About</span><i class="menu__lead"></i><span class="menu__qty">who</span></a></li>
-          <li class="pl" style="--i: 4"><a href="#work"><span class="menu__n">2</span><span class="menu__lbl">Work</span><i class="menu__lead"></i><span class="menu__qty">8 items</span></a></li>
+          <li class="pl" style="--i: 4"><a href="#work"><span class="menu__n">2</span><span class="menu__lbl">Work</span><i class="menu__lead"></i><span class="menu__qty">7 items</span></a></li>
           <li class="pl" style="--i: 5"><a href="#stack"><span class="menu__n">3</span><span class="menu__lbl">Stack</span><i class="menu__lead"></i><span class="menu__qty">tools</span></a></li>
           <li class="pl" style="--i: 6"><a href="#log"><span class="menu__n">4</span><span class="menu__lbl">Log</span><i class="menu__lead"></i><span class="menu__qty">4 entries</span></a></li>
           <li class="pl" style="--i: 7"><a href="#contact"><span class="menu__n">5</span><span class="menu__lbl">Contact</span><i class="menu__lead"></i><span class="menu__qty">say hi</span></a></li>
@@ -125,10 +125,13 @@
 
         <section class="r-sec" id="about" data-tape="who's printing this">
           <div class="r-title"><h2>About</h2><span>1 of 5</span></div>
+          <figure class="print print--margin print--left">
+            <canvas data-illus="where" role="img" aria-label="Dot-matrix map of Java with Bandung marked in red"></canvas>
+          </figure>
           <div class="prose">
             <p>
               I'm Danu, an Informatics Engineering student in Bandung. Most of my work sits where models meet
-              products: pose-based fall detection, plant-disease screening inside a farmer PWA, AR on Android, and the
+              products: pose-based fall detection, plant-disease screening inside a farmer PWA, a notch app for macOS, and the
               Laravel and React apps that hold it all together.
             </p>
             <p>
@@ -143,114 +146,163 @@
           </dl>
         </section>
 
-        <section class="r-sec" id="work" data-tape="6 shipped, 2 still printing">
-          <div class="r-title"><h2>Work</h2><span>8 items</span></div>
+        <section class="r-sec" id="work" data-tape="5 shipped, 2 still printing">
+          <div class="r-title"><h2>Work</h2><span>7 items</span></div>
 
-          <article class="item">
+          <article class="item item--flagship" id="w01">
             <div class="item__row"><span class="item__code">01</span><h3>Fall detection, LSTM-SVM</h3><i class="lead"></i><span class="item__qty">Jul 2026</span></div>
             <p class="item__desc">
               Skeleton-based fall detection from MediaPipe Pose. A hybrid LSTM-SVM compared against LSTM-only and
               SVM-only baselines, with a real-time demo on video and live webcam. Research internship at USM, now my
               undergraduate thesis.
             </p>
+            <figure class="print">
+              <canvas data-illus="fall" role="img" aria-label="Dot-matrix pose sequence: a skeleton stands, stumbles, falls and lies on the floor, and the last frame is boxed in red as a fall"></canvas>
+            </figure>
             <p class="item__stack">PyTorch, scikit-learn, MediaPipe</p>
-            <a class="item__link" href="https://github.com/dnjwna/fall-detection-lstm-svm" target="_blank" rel="noopener">github.com/dnjwna/fall-detection-lstm-svm</a>
-            <details class="item__more">
-              <summary>Read the findings</summary>
-              <ul>
-                <li>149-dim scale and translation-invariant pose features; stacked LSTM 64→32; RBF SVM with calibrated probabilities.</li>
-                <li>Videos are split before windowing, so no clip leaks between train and test.</li>
-                <li>Within-dataset 5-fold CV: fall F1 of 0.69 to 0.80, and all three variants are statistically equivalent.</li>
-                <li>Zero-shot URFD to Le2i over 6 seeds: fall recall of about 0.58 to 0.66. That generalization gap is the main finding.</li>
-              </ul>
-            </details>
+            <section class="findings" aria-labelledby="findings-title">
+              <h4 class="findings__title" id="findings-title">* Findings *</h4>
+              <dl class="findings__rows">
+                <div><dt>Fall F1, within-dataset 5-fold CV</dt><dd>0.69–0.80</dd></div>
+                <div><dt>Hybrid vs LSTM-only vs SVM-only</dt><dd>equivalent</dd></div>
+                <div class="findings__key"><dt>Fall recall, zero-shot URFD → Le2i, 6 seeds</dt><dd>≈0.58–0.66</dd></div>
+              </dl>
+              <p class="findings__note">
+                That generalization gap is the main finding. 149-dim scale and translation-invariant pose features,
+                stacked LSTM 64→32, RBF SVM with calibrated probabilities. Videos are split before windowing, so no clip
+                leaks between train and test.
+              </p>
+            </section>
           </article>
 
-          <article class="item">
+          <article class="item" id="w02">
             <div class="item__row"><span class="item__code">02</span><h3>Pulau, macOS notch app</h3><i class="lead"></i><span class="item__qty">Nov 2026</span></div>
             <p class="item__desc">
               A Dynamic Island for the MacBook notch, forked from Boring Notch: a productivity island, now playing with
               lyrics, and a large lock-screen player. Version 0.1.0 is out as a beta.
             </p>
+            <figure class="print">
+              <canvas data-illus="pulau" role="img" aria-label="Dot-matrix drawing: a MacBook screen with a closed notch, and the same notch opened into an island playing music"></canvas>
+            </figure>
             <p class="item__stack">Swift, Xcode</p>
             <a class="item__link" href="https://github.com/dnjwna/pulau" target="_blank" rel="noopener">github.com/dnjwna/pulau</a>
           </article>
 
-          <article class="item">
+          <article class="item" id="w03">
             <div class="item__row"><span class="item__code">03</span><h3>FarmLens</h3><i class="lead"></i><span class="item__qty">May 2026</span></div>
             <p class="item__desc">
               An AgriTech PWA for Indonesian smallholder farmers: plant-disease checks with Gemini vision, hyperlocal
               weather from Open-Meteo, and crop insurance that pays out on weather triggers.
             </p>
+            <figure class="print">
+              <canvas data-illus="farmlens" role="img" aria-label="Dot-matrix drawing: a leaf in a camera frame with its disease spots boxed in red, and a rain cloud beside a rain gauge filled past a red trigger line"></canvas>
+            </figure>
             <p class="item__stack">Next.js, FastAPI, Supabase, Gemini API</p>
             <a class="item__link" href="https://github.com/dnjwna/farmlens" target="_blank" rel="noopener">github.com/dnjwna/farmlens</a>
           </article>
 
-          <article class="item">
+          <article class="item" id="w04">
             <div class="item__row"><span class="item__code">04</span><h3>FlowStep</h3><i class="lead"></i><span class="item__qty">Jun 2026</span></div>
             <p class="item__desc">
               Project management with a drag-and-drop Kanban board, role-based access, email invitations and live
               notifications. Final project of the Dibimbing.id full-stack bootcamp.
             </p>
+            <figure class="print">
+              <canvas data-illus="flowstep" role="img" aria-label="Dot-matrix drawing: a three-column Kanban board with one card being dragged from the first column into the second"></canvas>
+            </figure>
             <p class="item__stack">Laravel 11, React 19, Redux Toolkit, shadcn/ui</p>
             <a class="item__link" href="https://github.com/dnjwna/flowstep" target="_blank" rel="noopener">github.com/dnjwna/flowstep</a>
           </article>
 
-          <article class="item">
+          <article class="item" id="w05">
             <div class="item__row"><span class="item__code">05</span><h3>Mini Wallet</h3><i class="lead"></i><span class="item__qty">Jun 2026</span></div>
             <p class="item__desc">
               Top-ups and transfers that stay consistent under concurrent requests, using row-locked database
               transactions. Deployed on Railway and Vercel.
             </p>
+            <figure class="print">
+              <canvas data-illus="wallet" role="img" aria-label="Dot-matrix drawing: two requests arrive at once at a padlock that guards one row of a ledger, marked in red"></canvas>
+            </figure>
             <p class="item__stack">Laravel 11, Sanctum, React 18, Vite</p>
             <a class="item__link" href="https://github.com/dnjwna/mini-wallet-project" target="_blank" rel="noopener">github.com/dnjwna/mini-wallet-project</a>
           </article>
 
-          <article class="item">
-            <div class="item__row"><span class="item__code">06</span><h3>AR endangered species</h3><i class="lead"></i><span class="item__qty">Jun 2026</span></div>
-            <p class="item__desc">
-              An Android AR app that recognises five Indonesian endangered species from markers and shows each one as a
-              3D model.
-            </p>
-            <p class="item__stack">Unity, Vuforia, Blender</p>
-          </article>
-
-          <article class="item item--pending">
-            <div class="item__row"><span class="item__code">07</span><h3>Satellite image super-resolution</h3><i class="lead"></i><span class="stamp">In progress</span></div>
+          <article class="item item--pending" id="w06">
+            <div class="item__row"><span class="item__code">06</span><h3>Satellite image super-resolution</h3><i class="lead"></i><span class="stamp">In progress</span></div>
             <p class="item__desc">
               Real-ESRGAN on remote-sensing imagery with realistic degradation, to test whether sharper inputs improve
               land-cover classification. Deep Learning course project, with a Streamlit demo planned.
             </p>
+            <figure class="print">
+              <canvas data-illus="satellite" role="img" aria-label="Dot-matrix drawing: a blocky low-resolution satellite tile of fields and a river, and the same tile printed sharp"></canvas>
+            </figure>
           </article>
 
-          <article class="item item--pending">
-            <div class="item__row"><span class="item__code">08</span><h3>Citation check agent</h3><i class="lead"></i><span class="stamp">In progress</span></div>
+          <article class="item item--pending" id="w07">
+            <div class="item__row"><span class="item__code">07</span><h3>Citation check agent</h3><i class="lead"></i><span class="stamp">In progress</span></div>
             <p class="item__desc">
               An agent that checks whether cited claims in thesis drafts are actually supported by their sources, using
               natural language inference. NLP course project.
             </p>
+            <figure class="print">
+              <canvas data-illus="citation" role="img" aria-label="Dot-matrix drawing: two cited claims in a draft linked to a source page, one marked supported with a tick, one marked unsupported with a red cross"></canvas>
+            </figure>
           </article>
 
           <dl class="totals">
-            <div><dt>Shipped</dt><dd>6</dd></div>
+            <div><dt>Shipped</dt><dd>5</dd></div>
             <div><dt>Still printing</dt><dd>2</dd></div>
-            <div class="totals__grand"><dt>Total</dt><dd>8 items</dd></div>
+            <div class="totals__grand"><dt>Total</dt><dd>7 items</dd></div>
           </dl>
         </section>
 
         <section class="r-sec" id="stack" data-tape="tools I reach for">
           <div class="r-title"><h2>Stack</h2><span>5 groups</span></div>
-          <dl class="kv kv--stack">
-            <div><dt>Machine learning</dt><dd>PyTorch, scikit-learn, MediaPipe, Python</dd></div>
-            <div><dt>Backend</dt><dd>Laravel 11, FastAPI, Supabase, MySQL</dd></div>
-            <div><dt>Frontend</dt><dd>React, Next.js, Redux Toolkit, Tailwind, shadcn/ui</dd></div>
-            <div><dt>Apps and XR</dt><dd>Unity, Vuforia, Blender, Swift</dd></div>
-            <div><dt>Shipping</dt><dd>Git, Postman, Vercel, Railway, VPS</dd></div>
-          </dl>
+          <figure class="print print--margin print--right">
+            <canvas data-illus="pipeline" role="img" aria-label="Dot-matrix diagram: four boxes, model, API, app and ship, joined by arrows from top to bottom"></canvas>
+          </figure>
+          <div class="stack">
+            <h3 class="stack__group">Machine learning</h3>
+            <ul class="stack__rows">
+              <li><span>PyTorch</span><i class="lead"></i><span class="refs"><a class="ref" href="#w01" aria-label="Project 01, Fall detection">01</a></span></li>
+              <li><span>scikit-learn</span><i class="lead"></i><span class="refs"><a class="ref" href="#w01" aria-label="Project 01, Fall detection">01</a></span></li>
+              <li><span>MediaPipe</span><i class="lead"></i><span class="refs"><a class="ref" href="#w01" aria-label="Project 01, Fall detection">01</a></span></li>
+            </ul>
+            <p class="stack__also">Also Python</p>
+            <h3 class="stack__group">Backend</h3>
+            <ul class="stack__rows">
+              <li><span>Laravel 11</span><i class="lead"></i><span class="refs"><a class="ref" href="#w04" aria-label="Project 04, FlowStep">04</a><a class="ref" href="#w05" aria-label="Project 05, Mini Wallet">05</a></span></li>
+              <li><span>FastAPI</span><i class="lead"></i><span class="refs"><a class="ref" href="#w03" aria-label="Project 03, FarmLens">03</a></span></li>
+              <li><span>Supabase</span><i class="lead"></i><span class="refs"><a class="ref" href="#w03" aria-label="Project 03, FarmLens">03</a></span></li>
+            </ul>
+            <p class="stack__also">Also MySQL</p>
+            <h3 class="stack__group">Frontend</h3>
+            <ul class="stack__rows">
+              <li><span>React</span><i class="lead"></i><span class="refs"><a class="ref" href="#w04" aria-label="Project 04, FlowStep">04</a><a class="ref" href="#w05" aria-label="Project 05, Mini Wallet">05</a></span></li>
+              <li><span>Next.js</span><i class="lead"></i><span class="refs"><a class="ref" href="#w03" aria-label="Project 03, FarmLens">03</a></span></li>
+              <li><span>Redux Toolkit</span><i class="lead"></i><span class="refs"><a class="ref" href="#w04" aria-label="Project 04, FlowStep">04</a></span></li>
+              <li><span>shadcn/ui</span><i class="lead"></i><span class="refs"><a class="ref" href="#w04" aria-label="Project 04, FlowStep">04</a></span></li>
+            </ul>
+            <p class="stack__also">Also Tailwind</p>
+            <h3 class="stack__group">macOS apps</h3>
+            <ul class="stack__rows">
+              <li><span>Swift</span><i class="lead"></i><span class="refs"><a class="ref" href="#w02" aria-label="Project 02, Pulau">02</a></span></li>
+              <li><span>Xcode</span><i class="lead"></i><span class="refs"><a class="ref" href="#w02" aria-label="Project 02, Pulau">02</a></span></li>
+            </ul>
+            <h3 class="stack__group">Shipping</h3>
+            <ul class="stack__rows">
+              <li><span>Vercel</span><i class="lead"></i><span class="refs"><a class="ref" href="#w05" aria-label="Project 05, Mini Wallet">05</a></span></li>
+              <li><span>Railway</span><i class="lead"></i><span class="refs"><a class="ref" href="#w05" aria-label="Project 05, Mini Wallet">05</a></span></li>
+            </ul>
+            <p class="stack__also">Also Git, Postman, VPS</p>
+          </div>
         </section>
 
         <section class="r-sec" id="log" data-tape="4 entries, newest first">
           <div class="r-title"><h2>Log</h2><span>4 entries</span></div>
+          <figure class="print print--margin print--left">
+            <canvas data-illus="route" role="img" aria-label="Dot-matrix map from Bandung on Java to Penang in Malaysia, joined by a red dotted route"></canvas>
+          </figure>
           <ol class="log">
             <li>
               <span class="log__when">Jul 2026</span>
@@ -285,6 +337,9 @@
 
         <section class="r-sec" id="contact" data-tape="ways to reach me">
           <div class="r-title"><h2>Contact</h2><span>3 ways</span></div>
+          <figure class="print print--margin print--right">
+            <canvas data-illus="mail" role="img" aria-label="Dot-matrix envelope with a red Bandung postmark"></canvas>
+          </figure>
           <dl class="kv kv--contact">
             <div><dt>Email</dt><dd><a href="mailto:danujuwana05@gmail.com">danujuwana05@gmail.com</a></dd></div>
             <div><dt>GitHub</dt><dd><a href="https://github.com/dnjwna" target="_blank" rel="noopener">github.com/dnjwna</a></dd></div>
