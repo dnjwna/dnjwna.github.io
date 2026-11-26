@@ -85,6 +85,10 @@ body {
   margin: 0;
   background: var(--noise), radial-gradient(120% 80% at 70% 0%, #e3e7e2 0%, var(--counter) 55%, var(--counter-deep) 100%);
   background-attachment: fixed;
+  /* Chrome on Android leaves the strip uncovered by fixed backgrounds while the
+     address bar slides away mid-gesture; this colour fills it instead of white */
+  background-color: var(--counter-deep);
+  transition: background-color 0.6s ease;
   color: var(--ink);
   font-family: var(--f-mono);
   font-size: 14px;
@@ -1476,12 +1480,21 @@ button {
 body::before {
   content: '';
   position: fixed;
-  inset: 0;
+  /* sized to the largest viewport (address bar hidden), not the current one,
+     so it still reaches the bottom while the bar is mid-slide */
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100vh;
+  height: 100lvh;
   z-index: -1;
   pointer-events: none;
   background: var(--noise), radial-gradient(120% 80% at 70% 0%, #2b302d 0%, #1c201e 55%, #131615 100%);
   opacity: 0;
   transition: opacity 0.6s ease;
+}
+html.is-night body {
+  background-color: #131615;
 }
 html.is-night body::before {
   opacity: 1;
