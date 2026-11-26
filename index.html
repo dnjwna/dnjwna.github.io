@@ -48,6 +48,7 @@
 
           <div class="nav__meta">
             <span class="nav__clock" title="Local time in Bandung">BDG <time data-clock>--:--:--</time></span>
+            <button class="nav__btn" type="button" data-lamp-toggle aria-pressed="false">Lamp off</button>
             <button class="nav__btn" type="button" data-sound-toggle aria-pressed="true">Sound on</button>
             <button class="nav__btn nav__menu" type="button" id="menuBtn" aria-expanded="false" aria-controls="menu">Menu</button>
           </div>
@@ -81,6 +82,7 @@
         <p class="pl menu__total" style="--i: 9"><span>Total</span><span>5 sections</span></p>
         <svg class="pl barcode menu__barcode" style="--i: 10" data-barcode="DNJWNA-MENU" aria-hidden="true"></svg>
         <div class="pl menu__actions" style="--i: 11">
+          <button class="nav__btn" type="button" data-lamp-toggle aria-pressed="false">Lamp off</button>
           <button class="nav__btn" type="button" data-sound-toggle aria-pressed="true">Sound on</button>
           <button class="menu__tear" type="button" data-menu-close>Tear off to close</button>
         </div>
@@ -362,7 +364,6 @@
           <p class="r-foot">Thanks for reading. Keep this receipt.</p>
         </section>
       </main>
-      <p class="colophon">Printed in Bandung with Three.js. © <span data-year>2026</span> Danu Trisna Juwana</p>
     </div>
 
     <script type="module" src="/src/main.js"></script>

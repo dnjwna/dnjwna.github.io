@@ -3,6 +3,7 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import { createReceiptCanvas } from './receiptTexture.js';
 import { sound } from './sound.js';
 import { createContactShadow, createDust, createSelfTestStub } from './ambient.js';
+import { buildLamp, createLighting } from './lamp.js';
 import { createSlips } from './slips.js';
 import { FACTS } from './facts.js';
 
@@ -56,7 +57,8 @@ export async function initScene(canvas, { reduced = false } = {}) {
   /* ---- light + desk ----
      Key light comes from the upper right, low enough that the printer throws a
      long soft shadow leftward across the desk, into the space beside the copy. */
-  scene.add(new THREE.HemisphereLight(0xffffff, 0xa9b3ac, 1.35));
+  const hemi = new THREE.HemisphereLight(0xffffff, 0xa9b3ac, 1.35);
+  scene.add(hemi);
   const key = new THREE.DirectionalLight(0xfff8ee, 2.6);
   key.castShadow = true;
   key.shadow.mapSize.set(1024, 1024); // lower res + radius = softer penumbra
@@ -104,6 +106,17 @@ export async function initScene(canvas, { reduced = false } = {}) {
   // a self-test print torn off earlier, lying front-left of the machine
   const stub = createSelfTestStub();
   rig.add(stub);
+
+  // the desk lamp: click it to work late (night mode)
+  const lamp = buildLamp();
+  rig.add(lamp.group, lamp.spot, lamp.spot.target);
+  const LAMP_AIM = new THREE.Vector3(0, 1.55, 0.36); // the face of the printed paper
+  const lighting = createLighting({ hemi, key, fill, rim, ground, lamp, reduced });
+  lighting.set(document.documentElement.classList.contains('is-night'), { instant: true });
+  window.addEventListener('lamp:change', (e) => {
+    lighting.set(e.detail.on, { instant: e.detail.instant });
+    start();
+  });
 
   const dust = reduced ? null : createDust();
   if (dust) rig.add(dust.points);
@@ -227,6 +240,7 @@ export async function initScene(canvas, { reduced = false } = {}) {
       stub.rotation.y = 0.5;
       stub.scale.setScalar(1.22);
       slips.setLandingArea({ x: [-1.25, 0.2], z: [1.25, 1.75] });
+      lamp.place({ x: -2.05, z: -0.25 }, { x: -0.75, z: 1.35 }, LAMP_AIM); // left of the machine, reaching over the front
     } else {
       base.x = 0;
       base.rotY = -0.3;
@@ -236,6 +250,7 @@ export async function initScene(canvas, { reduced = false } = {}) {
       stub.rotation.y = -0.22;
       stub.scale.setScalar(1);
       slips.setLandingArea({ x: [-0.8, 0.8], z: [1.3, 1.75] });
+      lamp.place({ x: 1.12, z: -0.55 }, { x: 1.05, z: 1.4 }, LAMP_AIM); // narrow frame: right side, reaching over the front
     }
     camera.updateProjectionMatrix();
   }
@@ -319,6 +334,12 @@ export async function initScene(canvas, { reduced = false } = {}) {
     raycaster.setFromCamera(ndc, camera);
     return raycaster.intersectObjects(printer.buttonTargets, false).length > 0;
   }
+  function hitsLamp(clientX, clientY) {
+    const r = canvas.getBoundingClientRect();
+    ndc.set(((clientX - r.left) / r.width) * 2 - 1, -((clientY - r.top) / r.height) * 2 + 1);
+    raycaster.setFromCamera(ndc, camera);
+    return raycaster.intersectObjects(lamp.hitTargets, false).length > 0;
+  }
 
   function printFact() {
     const now = performance.now();
@@ -354,7 +375,9 @@ export async function initScene(canvas, { reduced = false } = {}) {
     if (!downAt) return;
     const moved = Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]);
     downAt = null;
-    if (moved < 8 && hitsButton(e.clientX, e.clientY)) printFact();
+    if (moved >= 8) return;
+    if (hitsButton(e.clientX, e.clientY)) printFact();
+    else if (hitsLamp(e.clientX, e.clientY)) window.dispatchEvent(new Event('lamp:toggle'));
   });
 
   /* ---- loop ---- */
@@ -553,6 +576,7 @@ export async function initScene(canvas, { reduced = false } = {}) {
     dust?.update(t);
     placeGlow();
 
+    lighting.update(dt, now);
     updatePaper(L, t, feed, kick, jam);
     slips.update(dt);
 
@@ -561,7 +585,7 @@ export async function initScene(canvas, { reduced = false } = {}) {
     printer.btn.position.z = printer.btnZ - press * 0.03;
     if (hoverDirty && hoverXY) {
       hoverDirty = false;
-      canvas.style.cursor = hitsButton(hoverXY[0], hoverXY[1]) ? 'pointer' : '';
+      canvas.style.cursor = hitsButton(hoverXY[0], hoverXY[1]) || hitsLamp(hoverXY[0], hoverXY[1]) ? 'pointer' : '';
     }
     renderer.render(scene, camera);
   }

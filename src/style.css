@@ -399,6 +399,7 @@ button {
 @media (max-width: 900px) {
   .nav__links,
   .nav__clock,
+  .nav__meta > [data-lamp-toggle],
   .nav__meta > [data-sound-toggle] {
     display: none;
   }
@@ -1434,6 +1435,64 @@ button {
   .item__row .lead {
     margin-left: 40px;
   }
+}
+
+/* Night: the desk lamp is on. The room goes dark, the paper stays paper. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--noise), radial-gradient(120% 80% at 70% 0%, #2b302d 0%, #1c201e 55%, #131615 100%);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+html.is-night body::before {
+  opacity: 1;
+}
+.hero__name,
+.hero__lede,
+.hero__hint,
+.hero__cta .btn {
+  transition: color 0.5s ease, background-color 0.5s ease, border-color 0.5s ease;
+}
+html.is-night .hero__name {
+  color: #ecede8;
+}
+html.is-night .hero__lede {
+  color: #b9bdb6;
+}
+html.is-night .hero__hint {
+  color: #8f958f;
+}
+html.is-night .hero__cta .btn {
+  border-color: #ecede8;
+  color: #ecede8;
+}
+html.is-night .hero__cta .btn--ink {
+  background: #ecede8;
+  color: #1e1f23;
+}
+html.is-night .hero__cta .btn--dashed {
+  border-color: #8f958f;
+}
+html.is-night .hero__cta .btn:hover {
+  background: #d8262e;
+  border-color: #d8262e;
+  color: #fcfcf9;
+}
+/* warm pool from the lamp instead of the daylight glow; the desk falls off into the dark */
+html.is-night .hero__stage::before {
+  background:
+    radial-gradient(560px 420px at var(--glow-x) var(--glow-y), rgba(255, 196, 120, 0.2), rgba(255, 196, 120, 0.06) 50%, transparent 75%),
+    linear-gradient(180deg, transparent calc(var(--horizon) - 60px), rgba(0, 0, 0, 0.14) var(--horizon), rgba(0, 0, 0, 0.24) 78%, transparent 100%);
+}
+html.is-night .receipt-wrap {
+  filter: drop-shadow(0 22px 34px rgba(0, 0, 0, 0.5));
+}
+html.is-night .menu__backdrop {
+  background: rgba(18, 21, 20, 0.72);
 }
 
 /* Paper jam: the stage jolts, and an error label is printed above the machine */

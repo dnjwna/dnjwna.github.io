@@ -5,6 +5,7 @@ import { initTear } from './tear.js';
 import { renderQR } from './qr.js';
 import { initPrints } from './dither.js';
 import { sound } from './sound.js';
+import { initNight } from './night.js';
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -26,6 +27,7 @@ document.querySelectorAll('[data-print-fact]').forEach((b) =>
   b.addEventListener('click', () => window.dispatchEvent(new Event('printer:print-fact'))),
 );
 initNav({ reduced });
+initNight({ reduced });
 
 /* ---- contact actions ---- */
 const status = document.getElementById('actionStatus');
